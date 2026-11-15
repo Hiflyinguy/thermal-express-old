@@ -8,4 +8,6 @@ Twelve short stops, each with one idea, one thing to play with, and a question o
 states of matter, temperature and thermal energy, heat, specific heat, changing state,
 thermal expansion, conduction, convection, radiation, conductors and insulators.
 
+**Printable cheat sheet (two pages):** [Thermal-Express-Cheat-Sheet.pdf](https://hiflyinguy.github.io/thermal-express/Thermal-Express-Cheat-Sheet.pdf)
+
 It is a single self-contained page (`index.html`). Progress is saved only in the browser of whoever is using it.

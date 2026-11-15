@@ -116,6 +116,7 @@ h1:focus{outline:none}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
 .btn.small{font-size:15px;padding:8px 12px}
+a.btn{display:inline-block;text-decoration:none}
 .range{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;margin-top:14px}
 .range label{font-weight:700}
 .range output{font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
@@ -1053,6 +1054,7 @@ function buildTerminus(sec,s){
   updateTicket=function(){slots.forEach(b=>{const p=state.punched.includes(b.dataset.id);b.classList.toggle('punched',p);b.setAttribute('aria-label','Stop '+b.querySelector('.hole').textContent+', '+b.lastChild.textContent+(p?', punched':', not punched yet'));});
     const n=state.punched.length;tmsg.textContent=n>=12?'Your ticket is complete. You have covered every section of your notes.':n+' of 12 stops punched. Tap a stop to ride it again.';};
   const ticket=el('div',{class:'card'},el('p',{class:'kicker'},'Your ticket'),tmsg,tk);
+  const sheet=el('div',{class:'card'},el('p',{class:'kicker'},'Printable cheat sheet'),el('p',{style:'max-width:38em;margin-bottom:12px'},'Two pages with everything on this line: the key words on boxcars, the grade up to Boiling Station, and the three ways thermal energy travels. Print it front and back.'),el('a',{class:'btn primary',href:'Thermal-Express-Cheat-Sheet.pdf',target:'_blank',rel:'noopener'},'Open the cheat sheet (PDF)'));
   const vg=el('div',{class:'vocab'},VOCAB.map(v=>{const b=el('button',{type:'button',class:'vcard','aria-expanded':'false'},el('span',{class:'term'},v[0]),el('span',{class:'tap'},'Tap to see the meaning'));
     b.addEventListener('click',()=>{const o=!b.classList.contains('open');b.classList.toggle('open',o);b.setAttribute('aria-expanded',String(o));b.innerHTML='';
       b.append(el('span',{class:'term'},v[0]));if(o)b.append(el('span',{},v[1]),el('span',{class:'pic'},'On the railroad: '+v[2]));else b.append(el('span',{class:'tap'},'Tap to see the meaning'));});return b;}));
@@ -1071,7 +1073,7 @@ function buildTerminus(sec,s){
     if(miss.length){const seen={};const ul=el('ul',{class:'missed'});miss.forEach(q=>{if(seen[q.stop])return;seen[q.stop]=1;const st=STOPS.find(x=>x.id===q.stop);ul.append(el('li',{},btn('Ride stop '+st.num+' again: '+st.name,()=>go(st.id),'small')));});fin.append(el('p',{style:'margin-top:14px;font-weight:700'},'Stops to ride again:'),ul);}
     fin.append(btn('Run the inspection again',()=>{qi=0;first=[];render();}));}
   render();
-  sec.append(el('div',{style:'display:flex;flex-direction:column;gap:20px'},sum,ticket),
+  sec.append(el('div',{style:'display:flex;flex-direction:column;gap:20px'},sum,ticket,sheet),
     el('h2',{class:'sectionhead'},'Vocabulary cards'),vg,
     el('h2',{class:'sectionhead'},'Final inspection'),el('p',{style:'margin:-4px 0 12px;max-width:38em'},'Twelve questions, one at a time. There is no timer. A wrong answer just means you pick again.'),fin);
 }
