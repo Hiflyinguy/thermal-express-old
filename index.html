@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thermal Express Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: a railway line diagram across the top; one stop per screen, reading on the left, a live demo on the right. */
+  --bg:#E7ECEC; --panel:#FFFFFF; --panel-2:#F1F5F4; --canvas-bg:#F4F7F7;
+  --ink:#14212B; --ink-2:#4B5B66; --line:#C3CED2;
+  --brand:#1D5C48; --brand-ink:#FFFFFF; --brass:#8F6400; --brass-soft:#F4E7BF;
+  --hot:#D4432B; --cold:#2C6CD6;
+  --good:#1B7548; --good-soft:#DDF1E5; --hint:#8A4B00; --hint-soft:#FBEBD3;
+  --sign-bg:#16232D; --sign-ink:#F3EED9;
+  --skin:#E6B595; --water:#CDE3F6;
+  --loco-body:#1D5C48; --loco-dark:#1C242B; --loco-wheel:#A63A2C; --loco-brass:#C59B1E;
+  --font-display:'Big Shoulders Display','Arial Narrow','Roboto Condensed','Helvetica Neue',sans-serif;
+  --font-body:'Atkinson Hyperlegible',Verdana,'Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1419; --panel:#172029; --panel-2:#1D2832; --canvas-bg:#121A21;
+    --ink:#E7EDF1; --ink-2:#A7B5C0; --line:#34434F;
+    --brand:#3FA784; --brand-ink:#06140F; --brass:#E2B544; --brass-soft:#3A3014;
+    --hot:#FF6F4F; --cold:#62A5FF;
+    --good:#55C690; --good-soft:#143524; --hint:#F2B25C; --hint-soft:#3A2A12;
+    --sign-bg:#0A1014; --sign-ink:#F3EED9;
+    --skin:#D9A886; --water:#1F3B55;
+    --loco-body:#2D7F64; --loco-dark:#4A5864; --loco-wheel:#C4503F; --loco-brass:#D9B23A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1419; --panel:#172029; --panel-2:#1D2832; --canvas-bg:#121A21;
+  --ink:#E7EDF1; --ink-2:#A7B5C0; --line:#34434F;
+  --brand:#3FA784; --brand-ink:#06140F; --brass:#E2B544; --brass-soft:#3A3014;
+  --hot:#FF6F4F; --cold:#62A5FF;
+  --good:#55C690; --good-soft:#143524; --hint:#F2B25C; --hint-soft:#3A2A12;
+  --sign-bg:#0A1014; --sign-ink:#F3EED9;
+  --skin:#D9A886; --water:#1F3B55;
+  --loco-body:#2D7F64; --loco-dark:#4A5864; --loco-wheel:#C4503F; --loco-brass:#D9B23A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.55 var(--font-body)}
+p{margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px 40px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:default}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+h1:focus{outline:none}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:14px 0 4px}
+.brandmark{font:800 30px/1 var(--font-display);letter-spacing:.07em;text-transform:uppercase}
+.brandmark span{color:var(--brass)}
+.topright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.count{font-size:16px;color:var(--ink-2)}
+.count b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* route diagram */
+.route{overflow-x:auto;padding:4px 0 10px;scrollbar-width:thin}
+.route ol{list-style:none;display:flex;margin:0;padding:8px 0 0;min-width:max-content}
+.route li{flex:1 0 78px;display:flex;flex-direction:column;align-items:center;position:relative}
+.route li::before{content:"";position:absolute;top:17px;right:50%;width:100%;height:5px;background:var(--line)}
+.route li:first-child::before{display:none}
+.route li.passed::before{background:var(--brand)}
+.route button{position:relative;z-index:1;width:38px;height:38px;border-radius:50%;border:3px solid var(--ink-2);background:var(--panel);font:700 16px/1 var(--font-body);font-variant-numeric:tabular-nums;padding:0}
+.route li.end button{border-radius:8px}
+.route li.punched button{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.route li.cur button{border-color:var(--brass);box-shadow:0 0 0 4px var(--brass-soft)}
+.route .lbl{font:400 13px/1.2 var(--font-body);margin-top:6px;color:var(--ink-2);text-align:center;max-width:76px}
+.route li.cur .lbl{color:var(--ink);font-weight:700}
+
+/* station nameboard */
+.stop{display:none}
+.stop.on{display:block}
+.board{background:var(--sign-bg);color:var(--sign-ink);border:3px solid var(--sign-ink);box-shadow:0 0 0 4px var(--sign-bg);border-radius:8px;padding:14px 24px 16px;margin:10px 4px 22px}
+.board .num{font:600 17px/1 var(--font-display);letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+.board h1{font:800 clamp(38px,7vw,64px)/.95 var(--font-display);letter-spacing:.035em;text-transform:uppercase;margin:6px 0 8px;text-wrap:balance}
+.board .covers{font-size:16px;opacity:.9}
+
+/* stop layout */
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px;align-items:start}
+.colL,.colR{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:900px){
+  .grid{display:flex;flex-direction:column}
+  .colL,.colR{display:contents}
+  .bigcard{order:1}.democard{order:2}.wordscard{order:3}.railcard{order:4}.check{order:5}.extra{order:6}
+}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;min-width:0}
+.kicker{font:600 15px/1 var(--font-display);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin-bottom:10px}
+.big{font-size:23px;line-height:1.4;font-weight:700;max-width:34em;text-wrap:pretty}
+.try{margin-bottom:14px;max-width:38em}
+.words{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;max-width:38em}
+.words li{padding-left:20px;position:relative}
+.words li::before{content:"";position:absolute;left:0;top:.62em;width:10px;height:4px;background:var(--brand);border-radius:2px}
+.railcard{background:var(--panel-2);border-left:6px solid var(--brass)}
+.railcard p+p{margin-top:10px}
+.railcard p{max-width:38em}
+.fig{margin-top:14px}
+.fig svg{max-width:100%;height:auto;display:block}
+
+/* demo */
+.cv{display:block;width:100%;height:auto;background:var(--canvas-bg);border:1px solid var(--line);border-radius:10px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.btn{font:700 17px/1.2 var(--font-body);padding:11px 16px;border-radius:10px;border:2px solid var(--ink);background:var(--panel);color:var(--ink)}
+.btn:hover{background:var(--panel-2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.btn.small{font-size:15px;padding:8px 12px}
+.range{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;margin-top:14px}
+.range label{font-weight:700}
+.range output{font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
+.range input{grid-column:1 / -1;width:100%;accent-color:var(--brand);height:30px;margin:0}
+.readout{margin-top:12px;padding:10px 14px;background:var(--panel-2);border-radius:8px;font-variant-numeric:tabular-nums;min-height:3.1em}
+.caps3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;text-align:center;font-size:15px;line-height:1.3;color:var(--ink-2)}
+.caps3 b{display:block;color:var(--ink)}
+.subhead{font-weight:700;margin:22px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.partbox{margin-top:12px;padding:12px 14px;background:var(--panel-2);border-radius:8px}
+.partbox .btn{margin-top:10px}
+
+/* checks */
+.check .q+.q{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.qt{font-weight:700;font-size:19px;margin-bottom:10px;max-width:34em}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:400 17px/1.35 var(--font-body);padding:11px 14px;border-radius:10px;border:2px solid var(--line);background:var(--panel)}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{border-color:var(--good);background:var(--good-soft);font-weight:700}
+.opt.wrong{opacity:.55;text-decoration:line-through}
+.fb{margin-top:10px;padding:0;min-height:1.5em}
+.fb.good{color:var(--good);font-weight:700;background:var(--good-soft);padding:10px 14px;border-radius:8px}
+.fb.hint{color:var(--hint);background:var(--hint-soft);padding:10px 14px;border-radius:8px}
+.punchnote{margin-top:16px;padding:12px 14px;border:2px dashed var(--good);border-radius:8px;font-weight:700;color:var(--good)}
+
+/* extras */
+.waterstop{border:2px dashed var(--cold);background:var(--panel)}
+.waterstop .kicker{color:var(--cold)}
+.navrow{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.foot{margin-top:28px;font-size:15px;color:var(--ink-2);max-width:60em}
+
+/* sorting yard */
+.carcard{border:3px solid var(--ink);border-radius:10px;padding:16px 18px;background:var(--panel-2)}
+.carcard .n{font:600 15px/1 var(--font-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.carcard .t{font-size:21px;font-weight:700;line-height:1.35}
+.sortbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media (max-width:520px){.sortbtns{grid-template-columns:1fr}}
+.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+@media (max-width:620px){.tracks{grid-template-columns:1fr}}
+.track{border-bottom:5px solid var(--ink-2);padding-bottom:6px;min-height:92px;display:flex;flex-direction:column;gap:6px;justify-content:flex-end}
+.track h3{margin:0;font:800 20px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.track .hintline{font-size:14px;color:var(--ink-2);margin-bottom:auto}
+.car{display:inline-block;align-self:flex-start;background:var(--brand);color:var(--brand-ink);border-radius:5px;padding:4px 10px;font-size:15px;font-weight:700}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:760px){.three{grid-template-columns:1fr}}
+.three .card h3{margin:0 0 6px;font:800 24px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase}
+.three .card p{font-size:16.5px}
+.tagline{font-weight:700;color:var(--brass)}
+
+/* terminus */
+.ticket{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px}
+.slot{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px dashed var(--ink-2);border-radius:8px;font-size:15px;line-height:1.2;background:var(--panel);text-align:left}
+.slot .hole{flex:none;width:26px;height:26px;border-radius:50%;border:3px solid var(--ink-2);display:grid;place-items:center;font-size:14px;font-weight:700}
+.slot.punched{border-style:solid;border-color:var(--good)}
+.slot.punched .hole{background:var(--good);border-color:var(--good);color:var(--panel)}
+.vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.vcard{min-height:124px;text-align:left;border:2px solid var(--line);border-radius:10px;background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:6px;font:400 16px/1.35 var(--font-body)}
+.vcard .term{font:800 24px/1 var(--font-display);letter-spacing:.05em;text-transform:uppercase}
+.vcard .tap{font-size:14px;color:var(--ink-2)}
+.vcard.open{border-color:var(--brand);background:var(--panel-2)}
+.vcard .pic{color:var(--brass);font-weight:700;font-size:15px}
+.final .btn{margin-top:14px}
+.missed{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.missed li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.sectionhead{font:800 30px/1 var(--font-display);letter-spacing:.05em;text-transform:uppercase;margin:30px 0 12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="brandmark">Thermal <span>Express</span></p>
+    <div class="topright">
+      <p class="count">Ticket punched: <b id="count">0 of 12</b></p>
+      <button type="button" class="btn small" id="pauseBtn" aria-pressed="false">Pause motion</button>
+    </div>
+  </header>
+  <nav class="route" id="route" aria-label="Stops on the line"><ol id="route-list"></ol></nav>
+  <main id="main"></main>
+  <footer class="foot"><p>Built from the class notes “Thermal Energy &amp; Molecular Motion (General Concepts)”. The Words for the test boxes follow those notes. The railroad facts are extra, to help the ideas stick.</p></footer>
+</div>
+<script>
+(function(){
+'use strict';
+/* ================= helpers ================= */
+const TAU=Math.PI*2;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+function el(tag,attrs){
+  const e=document.createElement(tag);attrs=attrs||{};
+  for(const k in attrs){const v=attrs[k];
+    if(v==null||v===false)continue;
+    if(k==='class')e.className=v;
+    else if(k==='html')e.innerHTML=v;
+    else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);
+    else e.setAttribute(k,v===true?'':v);}
+  const add=kid=>{if(kid==null||kid===false)return;if(Array.isArray(kid)){kid.forEach(add);return;}e.append(kid.nodeType?kid:document.createTextNode(String(kid)));};
+  for(let i=2;i<arguments.length;i++)add(arguments[i]);
+  return e;
+}
+/* colors read from the theme tokens */
+const K={};
+function readColors(){
+  const cs=getComputedStyle(document.documentElement);
+  ['bg','panel','panel-2','canvas-bg','ink','ink-2','line','brand','brass','hot','cold','skin','water','loco-body','loco-dark','loco-wheel','loco-brass','good'].forEach(n=>{K[n]=cs.getPropertyValue('--'+n).trim();});
+  K.font=cs.getPropertyValue('--font-body').trim();
+  K.fontD=cs.getPropertyValue('--font-display').trim();
+}
+/* slow/cool = blue, fast/hot = red */
+const TC=[[58,124,236],[170,84,190],[240,82,48]];
+function tcol(t,a){
+  t=clamp(t,0,1);const i=t<.5?0:1,f=t<.5?t*2:(t-.5)*2,A=TC[i],B=TC[i+1];
+  const r=Math.round(lerp(A[0],B[0],f)),g=Math.round(lerp(A[1],B[1],f)),b=Math.round(lerp(A[2],B[2],f));
+  return a==null?'rgb('+r+','+g+','+b+')':'rgba('+r+','+g+','+b+','+a+')';
+}
+function dot(c,x,y,r,f){c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=f;c.fill();}
+function rr(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);}
+let FS=1;
+function tx(c,s,x,y,o){o=o||{};c.font=(o.w||400)+' '+(o.s||18)*(o.k?1:FS)+'px '+(o.d?K.fontD:K.font);c.fillStyle=o.c||K.ink;c.textAlign=o.a||'left';c.textBaseline=o.b||'alphabetic';c.fillText(s,x,y);}
+function tag(c,s,x,y,o){o=o||{};const sz=(o.s||17)*FS;c.font=(o.w||700)+' '+sz+'px '+K.font;const w=c.measureText(s).width+14;const x0=o.a==='center'?x-w/2:o.a==='right'?x-w:x;
+  c.globalAlpha=.9;rr(c,x0,y-sz-3,w,sz+11,6);c.fillStyle=K.panel;c.fill();c.globalAlpha=1;tx(c,s,x0+7,y,{s:sz,k:1,w:o.w||700,c:o.c});}
+function arrow(c,x1,y1,x2,y2,col,w){w=w||3;c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+  const a=Math.atan2(y2-y1,x2-x1),s=w*3.2;c.beginPath();c.moveTo(x2+Math.cos(a)*s*.6,y2+Math.sin(a)*s*.6);c.lineTo(x2-Math.cos(a-.55)*s,y2-Math.sin(a-.55)*s);c.lineTo(x2-Math.cos(a+.55)*s,y2-Math.sin(a+.55)*s);c.closePath();c.fill();c.lineCap='butt';}
+function flames(c,x,yb,w,hh,t,n){n=n||5;const fw=w/n;
+  for(let pass=0;pass<2;pass++){c.fillStyle=pass?'#FFD24A':'#F0812A';
+    for(let i=0;i<n;i++){const bx=x+(i+.5)*fw,f=(.62+.38*Math.sin(t*8+i*2.1))*(pass?.55:1)*hh,sw=Math.sin(t*5+i*1.3)*fw*.18,hw=fw*(pass?.36:.62);
+      c.beginPath();c.moveTo(bx-hw,yb);c.quadraticCurveTo(bx-hw*.9,yb-f*.55,bx+sw,yb-f);c.quadraticCurveTo(bx+hw*.9,yb-f*.55,bx+hw,yb);c.closePath();c.fill();}}}
+function thermo(c,x,yTop,len,frac,o){o=o||{};const w=o.w||12,br=w*1.25,yb=yTop+len,by=yb+br*.7;
+  c.lineWidth=2.5;c.strokeStyle=K.ink;rr(c,x-w/2,yTop,w,len+6,w/2);c.fillStyle=K.panel;c.fill();c.stroke();
+  dot(c,x,by,br,K.panel);c.beginPath();c.arc(x,by,br,0,TAU);c.stroke();
+  const col=o.col||K.hot;dot(c,x,by,br-3.5,col);const lh=clamp(frac,0,1)*(len-6);c.fillStyle=col;c.fillRect(x-w/2+3.5,yb-lh,w-7,lh+br*.5);}
+function moveIn(p,sp,dt,x0,y0,x1,y1){
+  p.x+=Math.cos(p.a)*sp*dt;p.y+=Math.sin(p.a)*sp*dt;
+  if(p.x<x0){p.x=x0;p.a=Math.PI-p.a;}else if(p.x>x1){p.x=x1;p.a=Math.PI-p.a;}
+  if(p.y<y0){p.y=y0;p.a=-p.a;}else if(p.y>y1){p.y=y1;p.a=-p.a;}
+}
+function repel(arr,d){for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++){const a=arr[i],b=arr[j];let dx=b.x-a.x,dy=b.y-a.y;const q=dx*dx+dy*dy;
+  if(q<d*d&&q>1e-4){const m=Math.sqrt(q),o=(d-m)/2/m;dx*=o;dy*=o;a.x-=dx;a.y-=dy;b.x+=dx;b.y+=dy;}}}
+function diffuse(u,D,dt,left){const n=Math.max(1,Math.ceil(D*dt/.2)),a=D*dt/n;
+  for(let s=0;s<n;s++){let prev=u[0];if(left!=null)u[0]=left;else u[0]=prev+a*(u[1]-prev);
+    for(let i=1;i<u.length;i++){const cur=u[i],nx=i+1<u.length?u[i+1]:cur;u[i]=cur+a*(prev-2*cur+nx);prev=cur;}}}
+const pulse=u=>u<=0||u>=1?0:Math.pow(Math.sin(Math.PI*u),2);
+
+/* ================= scenes ================= */
+const sceneMap={};let curId=null;
+let paused=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function syncPause(){const b=$('#pauseBtn');b.textContent=paused?'Play motion':'Pause motion';b.setAttribute('aria-pressed',String(paused));}
+function wake(){if(paused){paused=false;syncPause();}}
+function mkCanvas(W,H,label){const c=el('canvas',{class:'cv',role:'img','aria-label':label});c.width=W;c.height=H;c.style.aspectRatio=W+' / '+H;return c;}
+function addScene(id,sc){(sceneMap[id]=sceneMap[id]||[]).push(sc);}
+function btn(label,fn,cls){return el('button',{type:'button',class:'btn'+(cls?' '+cls:''),onclick:function(e){wake();fn(e);}},label);}
+let rid=0;
+function range(label,min,max,val,fn,fmt){const id='r'+(++rid);const out=el('output',{for:id},fmt(val));
+  const inp=el('input',{type:'range',id:id,min:min,max:max,value:val,step:1});
+  inp.addEventListener('input',()=>{const v=+inp.value;out.textContent=fmt(v);fn(v);});
+  return el('div',{class:'range'},el('label',{for:id},label),out,inp);}
+function setText(node,s){if(node.__s!==s){node.__s=s;node.innerHTML=s;}}
+let lastT=0;
+function loop(ts){
+  const dt=Math.min(.05,(ts-lastT)/1000)||0;lastT=ts;
+  const list=sceneMap[curId]||[];
+  for(const sc of list){
+    const w=sc.cv.getBoundingClientRect().width;if(w<2)continue;
+    if(!paused)sc.update(dt);
+    const dpr=Math.min(window.devicePixelRatio||1,2),pw=Math.round(w*dpr),ph=Math.round(pw*sc.H/sc.W);
+    if(sc.cv.width!==pw||sc.cv.height!==ph){sc.cv.width=pw;sc.cv.height=ph;}
+    const c=sc.cv.getContext('2d');c.setTransform(pw/sc.W,0,0,pw/sc.W,0,0);c.clearRect(0,0,sc.W,sc.H);
+    FS=w<470?1.3:w<560?1.15:1;sc.draw(c);
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Departure: the whole locomotive ---------- */
+function demoHero(root,id){
+  const W=640,H=330,RAIL=284;
+  const cv=mkCanvas(W,H,'Cutaway drawing of a steam locomotive. A fire heats water in the boiler. When the water boils, steam turns the wheels and smoke rises from the smokestack.');
+  const s={fire:.7,T:100,v:.55,ang:0,scroll:0,t:0,wisp:0,sel:'firebox'};
+  const win={x:306,y:160,w:186,h:46},wl=win.y+15;
+  const water=[],steam=[],puffs=[];
+  for(let i=0;i<24;i++)water.push({x:rand(win.x+5,win.x+win.w-5),y:rand(wl+4,win.y+win.h-4),a:rand(0,TAU),k:rand(.7,1.3)});
+  for(let i=0;i<7;i++)steam.push({x:rand(win.x+5,win.x+win.w-5),y:rand(win.y+4,wl-3),a:rand(0,TAU),k:rand(.8,1.2)});
+  const PARTS={
+    firebox:{b:[246,172,48,84],name:'Firebox',idea:'Radiation',stop:'radiation',d:'The glowing fire sends out energy as waves. The crew can feel it from across the cab without touching anything.'},
+    wall:{b:[288,168,20,52],name:'Firebox wall',idea:'Conduction',stop:'conduction',d:'The fire touches the steel wall, and the steel touches the water. Energy is passed along by particles bumping their neighbors.'},
+    boiler:{b:[304,156,190,54],name:'Boiler',idea:'Changing state',stop:'state',d:'Liquid water gets enough energy to boil into steam, which is a gas. The steam pushes the pistons that turn the wheels.'},
+    stack:{b:[508,56,44,98],name:'Smokestack',idea:'Convection',stop:'convection',d:'The gases from the fire are hot, so they are less dense than the air around them. They rise.'},
+    tender:{b:[14,160,142,98],name:'Tender',idea:'Specific heat',stop:'specific-heat',d:'The tender carries thousands of gallons of water. Water needs a lot of energy to warm up.'},
+    rails:{b:[562,RAIL-8,74,24],name:'Rails',idea:'Thermal expansion',stop:'expansion',d:'Steel rails get slightly longer on a hot day and shorter on a cold day.'}
+  };
+  const out=el('p',{class:'readout'});
+  function puff(big){puffs.push({x:530+rand(-3,3),y:96,r:big?9:5,vx:-(s.v*150)-rand(0,10),vy:-(big?55:26),age:0,life:big?1.6:2.4,g:big?26:9});if(puffs.length>44)puffs.shift();}
+  function wheel(c,x,y,r,a,n){dot(c,x,y,r,K['loco-dark']);dot(c,x,y,r-4,K['loco-wheel']);c.strokeStyle=K['loco-dark'];c.lineWidth=2.5;
+    for(let i=0;i<n;i++){const q=a+i*TAU/n;c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.cos(q)*(r-4),y+Math.sin(q)*(r-4));c.stroke();}dot(c,x,y,r*.22,K['loco-dark']);}
+  const sc={cv,W,H,
+    update(dt){
+      s.t+=dt;const heat=s.fire*30,loss=(s.T-20)*.12;let sr=0;
+      if(s.T>=99.99&&heat>=loss){s.T=100;sr=(heat-9.6)/20.4;}else s.T=clamp(s.T+(heat-loss)*dt,20,100);
+      s.v+=(sr-s.v)*Math.min(1,dt*.9);if(s.v<.002)s.v=0;
+      const pa=s.ang;s.ang+=s.v*7.5*dt;s.scroll+=s.v*225*dt;
+      if(Math.floor(s.ang/(TAU/4))!==Math.floor(pa/(TAU/4)))puff(true);
+      s.wisp+=dt;if(s.v<.06&&s.fire>.03&&s.wisp>.45){s.wisp=0;puff(false);}
+      for(let i=puffs.length-1;i>=0;i--){const p=puffs[i];p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy*=(1-dt*.8);p.r+=p.g*dt;if(p.age>p.life)puffs.splice(i,1);}
+      const ws=6+(s.T-20)*.6;
+      for(const p of water){p.a+=rand(-1,1)*dt*3;moveIn(p,ws*p.k,dt,win.x+5,wl+4,win.x+win.w-5,win.y+win.h-4);}
+      for(const p of steam)moveIn(p,80*p.k,dt,win.x+5,win.y+4,win.x+win.w-5,wl-3);
+    },
+    draw(c){
+      const T=Math.round(s.T);
+      setText(out,s.T>=99.99&&s.v>.03?'<b>Boiler water: 100 °C.</b> It is boiling. The steam is turning the wheels.':
+        s.T>=99.99?'<b>Boiler water: 100 °C.</b> It is starting to boil.':
+        s.fire<.03?'<b>Boiler water: '+T+' °C.</b> The fire is out and the water is cooling.':
+        s.v>.05?'<b>Boiler water: '+T+' °C.</b> Not boiling any more. The engine is coasting to a stop.':
+        '<b>Boiler water: '+T+' °C.</b> Not boiling yet, so there is no steam to push the pistons.');
+      /* background: telegraph poles, ties, rail */
+      c.globalAlpha=.28;c.strokeStyle=K['ink-2'];c.lineWidth=3;
+      for(let i=0;i<3;i++){let u=(i*240-s.scroll*.35)%(W+80);if(u<0)u+=W+80;const x=u-40;c.beginPath();c.moveTo(x,RAIL);c.lineTo(x,138);c.moveTo(x-14,150);c.lineTo(x+14,150);c.stroke();}
+      c.globalAlpha=.55;c.fillStyle=K['ink-2'];for(let x=-(s.scroll%36);x<W;x+=36)c.fillRect(x,RAIL+4,20,6);
+      c.globalAlpha=1;c.fillStyle=K.ink;c.fillRect(0,RAIL,W,4);
+      /* smoke */
+      for(const p of puffs){c.globalAlpha=.5*(1-p.age/p.life);dot(c,p.x,p.y,p.r,K['ink-2']);}c.globalAlpha=1;
+      const body=K['loco-body'],dark=K['loco-dark'],brass=K['loco-brass'];
+      /* tender */
+      c.fillStyle=dark;c.beginPath();c.moveTo(28,182);c.quadraticCurveTo(40,164,58,170);c.quadraticCurveTo(74,160,92,170);c.quadraticCurveTo(108,166,116,182);c.closePath();c.fill();
+      rr(c,18,180,134,70,6);c.fillStyle=body;c.fill();c.fillStyle=dark;c.fillRect(18,250,134,6);c.fillRect(152,244,18,4);
+      /* cab */
+      rr(c,170,130,78,122,4);c.fillStyle=body;c.fill();rr(c,162,120,94,12,5);c.fillStyle=dark;c.fill();
+      rr(c,186,144,44,34,3);c.fillStyle=K.water;c.fill();c.lineWidth=2;c.strokeStyle=dark;c.stroke();
+      /* frame, boiler, smokebox */
+      c.fillStyle=dark;c.fillRect(262,236,244,8);
+      rr(c,248,150,264,66,8);c.fillStyle=body;c.fill();
+      rr(c,510,150,40,66,[0,10,10,0]);c.fillStyle=dark;c.fill();
+      c.fillRect(520,108,20,42);rr(c,513,100,34,10,3);c.fill();
+      c.fillStyle=brass;c.beginPath();c.arc(395,150,17,Math.PI,0);c.fill();c.beginPath();c.arc(455,150,12,Math.PI,0);c.fill();rr(c,550,154,12,14,2);c.fill();
+      c.fillStyle=dark;c.fillRect(248,216,302,5);
+      /* firebox cutaway */
+      rr(c,250,176,40,76,3);c.fillStyle='#2A1A14';c.fill();
+      if(s.fire>.02)flames(c,252,248,36,14+s.fire*46,s.t,3);
+      c.fillStyle='#15100D';c.fillRect(250,245,40,7);rr(c,250,176,40,76,3);c.lineWidth=3;c.strokeStyle=dark;c.stroke();
+      /* boiler window */
+      rr(c,win.x,win.y,win.w,win.h,6);c.fillStyle=K['canvas-bg'];c.fill();
+      c.save();rr(c,win.x,win.y,win.w,win.h,6);c.clip();c.fillStyle=K.water;c.fillRect(win.x,wl,win.w,win.h);
+      const wt=.05+(s.T-20)/80*.85;for(const p of water)dot(c,p.x,p.y,3.6,tcol(wt));
+      const sa=clamp((s.T-88)/12,0,1);if(sa>0){c.globalAlpha=sa;for(const p of steam)dot(c,p.x,p.y,3,tcol(1));c.globalAlpha=1;}
+      c.restore();rr(c,win.x,win.y,win.w,win.h,6);c.lineWidth=2.5;c.strokeStyle=dark;c.stroke();
+      /* cylinder, pilot */
+      rr(c,502,230,46,24,4);c.fillStyle=dark;c.fill();
+      c.fillStyle=K['loco-wheel'];c.beginPath();c.moveTo(550,236);c.lineTo(598,RAIL);c.lineTo(550,RAIL);c.closePath();c.fill();
+      /* wheels and rods */
+      [44,84,124].forEach(x=>wheel(c,x,RAIL-14,14,s.ang*2.1,6));wheel(c,530,RAIL-14,14,s.ang*2.1,6);
+      const dx=[318,388,458],cy=RAIL-30;dx.forEach(x=>wheel(c,x,cy,30,s.ang,10));
+      const px=Math.cos(s.ang)*13,py=Math.sin(s.ang)*13,xh=488+px;
+      c.lineCap='round';c.strokeStyle='#B9C0C6';c.lineWidth=6;c.beginPath();c.moveTo(dx[0]+px,cy+py);c.lineTo(dx[2]+px,cy+py);c.stroke();
+      c.lineWidth=5;c.beginPath();c.moveTo(dx[1]+px,cy+py);c.lineTo(xh,242);c.stroke();c.lineWidth=3;c.beginPath();c.moveTo(xh,242);c.lineTo(506,242);c.stroke();c.lineCap='butt';
+      c.fillStyle='#B9C0C6';c.fillRect(xh-6,236,12,12);dx.forEach(x=>dot(c,x+px,cy+py,4,dark));
+      /* selected part */
+      const b=PARTS[s.sel].b;c.setLineDash([7,5]);c.lineWidth=3.5;c.strokeStyle=K.brass;rr(c,b[0]-4,b[1]-4,b[2]+8,b[3]+8,8);c.stroke();c.setLineDash([]);
+    }};
+  addScene(id,sc);
+  const chipBtns={};const pbox=el('div',{class:'partbox'});
+  function pick(k){s.sel=k;for(const q in chipBtns)chipBtns[q].setAttribute('aria-pressed',String(q===k));const p=PARTS[k];const st=STOPS.find(x=>x.id===p.stop);
+    pbox.innerHTML='';pbox.append(el('p',{html:'<b>'+p.name+': '+p.idea+'.</b> '+p.d}),btn('Go to stop '+st.num+': '+st.name,()=>go(p.stop),'small'));}
+  const chips=el('div',{class:'chips'},Object.keys(PARTS).map(k=>chipBtns[k]=el('button',{type:'button',class:'btn small','aria-pressed':'false',onclick:()=>pick(k)},PARTS[k].name)));
+  root.append(cv,range('Fire',0,100,70,v=>{s.fire=v/100;wake();},v=>v===0?'out':v<32?'low':v<66?'medium':'high'),out,
+    el('p',{class:'subhead'},'Tap a part of the engine to see which idea lives there.'),chips,pbox);
+  pick('firebox');
+}
+
+/* ---------- 1. solid, liquid, gas ---------- */
+function demoStates(root,id){
+  const W=640,H=270,floor=252;
+  const cv=mkCanvas(W,H,'Three tanks side by side. Solid: particles packed in rows, vibrating in place. Liquid: particles close together, sliding around at the bottom. Gas: a few particles flying through the whole tank.');
+  let tall=false,t=0;const dim={w:170,h:120},cx=[W/6,W/2,W*5/6];
+  const solid=[],liquid=[],gas=[];
+  for(let r=0;r<4;r++)for(let c=0;c<5;c++)solid.push({x:(c-2)*17,y:-(r*17+11),p:rand(0,TAU),q:rand(0,TAU)});
+  for(let i=0;i<36;i++)liquid.push({x:rand(-76,76),y:rand(-44,-8),a:rand(0,TAU),k:rand(.7,1.3)});
+  for(let i=0;i<9;i++)gas.push({x:rand(-76,76),y:rand(-110,-8),a:rand(0,TAU),k:rand(.8,1.2)});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;const f=Math.min(1,dt*5);dim.w+=((tall?104:170)-dim.w)*f;dim.h+=((tall?212:120)-dim.h)*f;
+      const hw=dim.w/2-8,lh=7480/dim.w+6;
+      for(const p of liquid){p.a+=rand(-1,1)*dt*2.5;moveIn(p,34*p.k,dt,-hw,-lh,hw,-8);}
+      repel(liquid,12.5);for(const p of liquid){p.x=clamp(p.x,-hw,hw);p.y=clamp(p.y,-lh,-8);}
+      for(const p of gas)moveIn(p,125*p.k,dt,-hw,-dim.h+8,hw,-8);},
+    draw(c){const names=['SOLID','LIQUID','GAS'];
+      for(let i=0;i<3;i++){rr(c,cx[i]-dim.w/2,floor-dim.h,dim.w,dim.h,6);c.fillStyle=K.panel;c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+        tx(c,names[i],cx[i],26,{s:25,w:800,d:1,a:'center'});}
+      for(const p of solid)dot(c,cx[0]+p.x+Math.sin(t*11+p.p)*1.5,floor+p.y+Math.cos(t*10+p.q)*1.5,6,tcol(.1));
+      for(const p of liquid)dot(c,cx[1]+p.x,floor+p.y,5.5,tcol(.45));
+      for(const p of gas)dot(c,cx[2]+p.x,floor+p.y,5.5,tcol(.95));}});
+  const b=btn('Change the tank shape',()=>{tall=!tall;});
+  root.append(cv,el('div',{class:'caps3'},
+    el('p',{},el('b',{},'Ice'),'Keeps its own shape.'),
+    el('p',{},el('b',{},'Water'),'Keeps its volume. Takes the shape of the tank.'),
+    el('p',{},el('b',{},'Steam'),'Spreads out to fill the whole tank.')),
+    el('div',{class:'controls'},b));
+}
+
+/* ---------- 2. kinetic energy, temperature, thermal energy ---------- */
+function demoSpeed(root,id){
+  const W=640,H=290,box={x:16,y:16,w:340,h:258};
+  const cv=mkCanvas(W,H,'A box of moving particles with two gauges: a thermometer for temperature and a bar for thermal energy.');
+  let s=.5,N=40;const P=[];
+  for(let i=0;i<140;i++)P.push({x:rand(box.x+8,box.x+box.w-8),y:rand(box.y+8,box.y+box.h-8),a:rand(0,TAU),k:rand(.6,1.4)});
+  const out=el('p',{class:'readout'});
+  function show(){setText(out,'<b>Temperature: '+Math.round(s*100)+' °C</b> (how fast the particles move on average)<br><b>Thermal energy: '+Math.round(s*N*10).toLocaleString('en-US')+' units</b> (all '+N+' particles added together)');}
+  addScene(id,{cv,W,H,
+    update(dt){for(let i=0;i<N;i++)moveIn(P[i],(18+s*190)*P[i].k,dt,box.x+7,box.y+7,box.x+box.w-7,box.y+box.h-7);},
+    draw(c){rr(c,box.x,box.y,box.w,box.h,8);c.fillStyle=K.panel;c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+      for(let i=0;i<N;i++)dot(c,P[i].x,P[i].y,5,tcol(s));
+      thermo(c,436,34,170,s,{w:16,col:tcol(s)});
+      tx(c,'Temperature',436,260,{s:16,k:1,w:700,a:'center'});tx(c,'average',436,279,{s:15,k:1,a:'center',c:K['ink-2']});
+      const f=clamp(s*N/140,0,1);rr(c,546,30,40,196,6);c.fillStyle=K.panel;c.fill();c.lineWidth=2.5;c.strokeStyle=K.ink;c.stroke();
+      c.fillStyle=K.brass;c.fillRect(549,223-f*190,34,f*190);
+      tx(c,'Thermal energy',566,260,{s:16,k:1,w:700,a:'center'});tx(c,'total',566,279,{s:15,k:1,a:'center',c:K['ink-2']});}});
+  root.append(cv,range('Particle speed',10,100,50,v=>{s=v/100;show();},v=>v+' °C'),range('Number of particles',10,140,40,v=>{N=v;show();},v=>v+' particles'),out);show();
+}
+
+/* ---------- 3. heat: three blocks and a graph ---------- */
+function demoBlocks(root,id){
+  const W=640,H=392,T0=[95,35,5],TMAX=30,bw=150,bh=96,by=46;
+  const cv=mkCanvas(W,H,'Three solid blocks at 95, 35 and 5 degrees Celsius, and a graph of their temperatures over time. When the blocks touch, the three lines move together and become flat.');
+  let T=T0.slice(),coupled=false,time=0,gap=26,t=0,acc=0,hist=[[0].concat(T0)];
+  const lat=[];for(let r=0;r<4;r++)for(let c=0;c<6;c++)lat.push({x:14+c*24.4,y:14+r*22.7,p:rand(0,TAU),q:rand(0,TAU)});
+  const lc=[tcol(.97),tcol(.5),tcol(.03)];
+  const out=el('p',{class:'readout'});
+  const bC=btn('Couple the blocks',()=>{coupled=!coupled;bC.textContent=coupled?'Uncouple the blocks':'Couple the blocks';});bC.classList.add('primary');
+  const bR=btn('Start again',()=>{T=T0.slice();time=0;acc=0;hist=[[0].concat(T0)];coupled=false;bC.textContent='Couple the blocks';});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;gap+=((coupled?0:26)-gap)*Math.min(1,dt*7);
+      if(coupled&&gap<1.5&&time<TMAX){const k=.22,a=(T[0]-T[1])*k*dt,b=(T[1]-T[2])*k*dt;T[0]-=a;T[1]+=a-b;T[2]+=b;time+=dt;acc+=dt;if(acc>.12){acc=0;hist.push([time,T[0],T[1],T[2]]);}}},
+    draw(c){
+      const spread=Math.max(T[0],T[1],T[2])-Math.min(T[0],T[1],T[2]),touch=coupled&&gap<1.5;
+      setText(out,!touch&&time===0?'The blocks are apart. Nothing is being transferred yet.':
+        !touch?'The blocks are apart, so the transfer has stopped.':
+        spread>1.5?'Thermal energy is flowing from hotter to cooler. The brass arrows show the direction.':
+        '<b>Thermal equilibrium.</b> All three blocks are '+Math.round(T[1])+' °C. Net heat transfer has stopped, so the lines are flat.');
+      const total=3*bw+2*gap,x0=(W-total)/2;
+      for(let i=0;i<3;i++){const x=x0+i*(bw+gap),f=T[i]/100;
+        rr(c,x,by,bw,bh,6);c.fillStyle=K.panel;c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+        const am=1+f*5.5,sp=6+f*16;for(const p of lat)dot(c,x+p.x+Math.sin(t*sp+p.p)*am,by+p.y+Math.cos(t*sp*.9+p.q)*am,5,tcol(f));
+        tx(c,Math.round(T[i])+' °C',x+bw/2,by-12,{s:23,w:700,a:'center'});
+        tx(c,'Block '+'ABC'[i],x+bw/2,by+bh+21,{s:16,a:'center',c:K['ink-2']});}
+      if(touch)for(let i=0;i<2;i++){const d=T[i]-T[i+1];if(Math.abs(d)>1.5){const xb=x0+(i+1)*bw+i*gap+gap/2,dir=d>0?1:-1;arrow(c,xb-20*dir,by-19,xb+20*dir,by-19,K.brass,4);}}
+      /* graph */
+      const gx=64,gy=196,gw=556,gh=150,X=s=>gx+s/TMAX*gw,Y=v=>gy+gh-v/100*gh;
+      c.lineWidth=1;c.strokeStyle=K.line;[0,50,100].forEach(v=>{c.beginPath();c.moveTo(gx,Y(v));c.lineTo(gx+gw,Y(v));c.stroke();tx(c,String(v),gx-8,Y(v)+5,{s:15,a:'right',c:K['ink-2']});});
+      c.lineWidth=2;c.strokeStyle=K.ink;c.beginPath();c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.lineTo(gx+gw,gy+gh);c.stroke();
+      tx(c,'Temperature (°C)',gx,gy-12,{s:15,c:K['ink-2']});tx(c,'Time →',gx+gw,gy+gh+24,{s:15,a:'right',c:K['ink-2']});
+      for(let j=0;j<3;j++){c.lineWidth=4;c.lineJoin='round';c.strokeStyle=lc[j];c.beginPath();hist.forEach((h,i)=>{const x=X(h[0]),y=Y(h[j+1]);if(i)c.lineTo(x,y);else c.moveTo(x,y);});
+        if(time>0)c.lineTo(X(time),Y(T[j]));c.stroke();dot(c,X(0),Y(T0[j]),6,lc[j]);dot(c,gx+gw-150+j*56,gy-17,6,lc[j]);tx(c,'ABC'[j],gx+gw-140+j*56,gy-12,{s:16,w:700});}
+      if(time===0)tx(c,'Press Couple the blocks to start the graph.',gx+gw/2+30,gy+gh/2+6,{s:17,a:'center',c:K['ink-2']});
+      else if(spread<=1.5)tag(c,'Flat lines: thermal equilibrium',X(TMAX)-8,Y(T[1])-14,{a:'right'});
+    }});
+  root.append(cv,el('div',{class:'controls'},bC,bR),out);
+}
+
+/* ---------- 4. specific heat ---------- */
+function demoSpecific(root,id){
+  const W=640,H=290;
+  const cv=mkCanvas(W,H,'One kilogram of steel and one kilogram of water on identical burners, each with a thermometer.');
+  let mode='idle',Q=0,Ts=20,Tw=20,t=0;const out=el('p',{class:'readout'});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;
+      if(mode==='heat'){const dq=4*dt;Q+=dq;Ts+=dq/.5;Tw+=dq/4.2;if(Ts>=100){Ts=100;mode='done';}}
+      else if(mode==='cool'){Ts-=(Ts-20)*.5*dt;Tw-=(Tw-20)*.0595*dt;}},
+    draw(c){
+      setText(out,mode==='idle'?'Both start at <b>20 °C</b>. Both have the same mass.':
+        mode==='heat'?'Heating. Energy added to each: <b>'+Q.toFixed(0)+' kJ</b>. Same energy into both.':
+        mode==='done'?'<b>Same energy, different result.</b> Each got '+Q.toFixed(0)+' kJ. The steel reached 100 °C. The water is only '+Math.round(Tw)+' °C, because water has a high specific heat.':
+        'Cooling from 80 °C. The steel is at <b>'+Math.round(Ts)+' °C</b>. The water is still at <b>'+Math.round(Tw)+' °C</b>. Water cools down slowly.');
+      [{x:150,n:'1 kg of steel',T:Ts},{x:460,n:'1 kg of water',T:Tw}].forEach((o,i)=>{
+        tx(c,o.n,o.x,30,{s:25,w:800,d:1,a:'center'});
+        rr(c,o.x-72,252,144,12,4);c.fillStyle=K['loco-dark'];c.fill();
+        if(mode==='heat')flames(c,o.x-52,252,104,36,t,5);
+        if(i===0){rr(c,o.x-60,150,120,64,6);c.fillStyle='#8E9AA3';c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();}
+        else{c.fillStyle=K.water;c.fillRect(o.x-57,142,114,70);c.lineWidth=3;c.strokeStyle=K.ink;c.beginPath();c.moveTo(o.x-60,122);c.lineTo(o.x-60,214);c.lineTo(o.x+60,214);c.lineTo(o.x+60,122);c.stroke();}
+        thermo(c,o.x+104,52,150,o.T/100,{w:14,col:tcol((o.T-20)/80)});
+        tx(c,Math.round(o.T)+' °C',o.x,104,{s:34,w:700,a:'center'});});
+    }});
+  root.append(cv,el('div',{class:'controls'},
+    btn('Heat both',()=>{mode='heat';Q=0;Ts=20;Tw=20;},'primary'),
+    btn('Cool both from 80 °C',()=>{mode='cool';Ts=80;Tw=80;}),
+    btn('Start again',()=>{mode='idle';Q=0;Ts=20;Tw=20;})),out);
+}
+
+/* ---------- 5. changing state ---------- */
+function demoState(root,id){
+  const W=640,H=340,box={x:18,y:36,w:226,h:278},N=30,C=6,SP=27;
+  const cv=mkCanvas(W,H,'Left: particles in a tank change from solid to liquid to gas as energy is added. Right: a graph of temperature against energy added. The line is flat during melting at 0 degrees and during boiling at 100 degrees.');
+  let E=.4,dir=0,t=0;const P=[];
+  for(let i=0;i<N;i++){const r=Math.floor(i/C),col=i%C,hx=box.x+box.w/2+(col-2.5)*SP,hy=box.y+box.h-17-(4-r)*SP;P.push({hx,hy,x:hx,y:hy,a:rand(0,TAU),k:rand(.75,1.25),p:rand(0,TAU),q:rand(0,TAU),m:'s'});}
+  const Tof=e=>e<1?-40+40*e:e<3?0:e<5.5?(e-3)/2.5*100:e<9?100:100+(e-9)*40;
+  const out=el('p',{class:'readout'});
+  const bs=[btn('Remove energy',()=>setDir(-1)),btn('Pause',()=>setDir(0)),btn('Add energy',()=>setDir(1),'primary')];
+  function setDir(d){dir=d;bs.forEach((b,i)=>b.setAttribute('aria-pressed',String(i-1===d)));}
+  setDir(0);
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;if(dir){E=clamp(E+dir*.55*dt,0,10);if(E<=0||E>=10)setDir(0);}
+      const T=Tof(E),nG=Math.round(clamp((E-5.5)/3.5,0,1)*N),nL=Math.round(clamp((E-1)/2,0,1)*N);
+      const x0=box.x+10,x1=box.x+box.w-10,yb=box.y+box.h-10,pt=yb-Math.max(26,76*(N-nG)/N),ls=20+42*clamp(T/100,0,1),gs=115+(T-100)*1.2;
+      for(let i=0;i<N;i++){const p=P[i];p.m=i<nG?'g':i<nL?'l':'s';
+        if(p.m==='s'){const f=Math.min(1,dt*7);p.x+=(p.hx-p.x)*f;p.y+=(p.hy-p.y)*f;}
+        else if(p.m==='l'){p.a+=rand(-1,1)*dt*3;if(p.y<pt-1){p.y+=170*dt;p.x=clamp(p.x+Math.cos(p.a)*ls*dt,x0,x1);}else moveIn(p,ls*p.k,dt,x0,pt,x1,yb);}
+        else moveIn(p,gs*p.k,dt,x0,box.y+10,x1,yb);}
+      for(let i=0;i<N;i++){const a=P[i];if(a.m!=='l')continue;const inside=a.y>=pt-1;
+        for(let j=0;j<N;j++){if(j===i)continue;const b=P[j];if(b.m==='g')continue;const dx=a.x-b.x,dy=a.y-b.y,q=dx*dx+dy*dy;
+          if(q<256&&q>.001){const m=Math.sqrt(q),o=(16-m)/m*(b.m==='s'?1:.5);a.x+=dx*o;a.y+=dy*o;}}
+        a.x=clamp(a.x,x0,x1);a.y=Math.min(a.y,yb);if(inside)a.y=Math.max(a.y,pt);}},
+    draw(c){
+      const T=Tof(E),flat=(E>=1&&E<3)||(E>=5.5&&E<9);
+      const st=E<1?'Solid (ice)':E<3?(dir<0?'Freezing: liquid → solid':'Melting: solid → liquid'):E<5.5?'Liquid (water)':E<9?(dir<0?'Condensing: gas → liquid':'Boiling: liquid → gas'):'Gas (steam)';
+      const en=dir===0?'Paused. Press Add energy or Remove energy.':flat?(dir>0?'The energy is rearranging the particles, so the temperature stays the same.':'Energy is leaving while the particles rearrange, so the temperature stays the same.'):dir>0?'The energy is making the particles move faster, so the temperature rises.':'Energy is leaving. The particles slow down, so the temperature falls.';
+      setText(out,'<b>'+Math.round(T)+' °C. '+st+'.</b><br>'+en);
+      rr(c,box.x,box.y,box.w,box.h,8);c.fillStyle=K.panel;c.fill();
+      const nG=Math.round(clamp((E-5.5)/3.5,0,1)*N),nL=Math.round(clamp((E-1)/2,0,1)*N),fl=(nL-nG)/N,yb=box.y+box.h-10,pt=yb-Math.max(26,76*(N-nG)/N);
+      if(fl>0){c.globalAlpha=Math.min(1,fl*2)*.85;c.fillStyle=K.water;c.fillRect(box.x+3,pt-9,box.w-6,box.y+box.h-3-(pt-9));c.globalAlpha=1;}
+      const tc=clamp((T+40)/180,0,1),am=1+2.2*clamp((T+40)/40,0,1);
+      for(const p of P){if(p.m==='s')dot(c,p.x+Math.sin(t*12+p.p)*am,p.y+Math.cos(t*11+p.q)*am,6.5,tcol(tc));else dot(c,p.x,p.y,6.5,tcol(tc));}
+      rr(c,box.x,box.y,box.w,box.h,8);c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+      tx(c,'Particles',box.x+2,24,{s:16,c:K['ink-2']});
+      /* graph */
+      const gx=316,gy=52,gw=304,gh=236,X=e=>gx+e/10*gw,Y=v=>gy+gh-(v+40)/180*gh,pts=[0,1,3,5.5,9,10];
+      c.setLineDash([4,5]);c.lineWidth=1.5;c.strokeStyle=K['ink-2'];[0,100].forEach(v=>{c.beginPath();c.moveTo(gx,Y(v));c.lineTo(gx+gw,Y(v));c.stroke();});c.setLineDash([]);
+      tx(c,'0 °C',gx-7,Y(0)+5,{s:15,a:'right',c:K['ink-2']});tx(c,'100 °C',gx-7,Y(100)+5,{s:15,a:'right',c:K['ink-2']});
+      c.lineWidth=2;c.strokeStyle=K.ink;c.beginPath();c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.lineTo(gx+gw,gy+gh);c.stroke();
+      tx(c,'Temperature',gx-52,24,{s:16,c:K['ink-2']});tx(c,'Energy added →',gx+gw,gy+gh+24,{s:15,a:'right',c:K['ink-2']});
+      c.lineJoin='round';c.lineCap='round';c.lineWidth=6;c.strokeStyle=K.line;c.beginPath();pts.forEach((e,i)=>{if(i)c.lineTo(X(e),Y(Tof(e)));else c.moveTo(X(e),Y(Tof(e)));});c.stroke();
+      c.strokeStyle=K.brand;c.beginPath();c.moveTo(X(0),Y(Tof(0)));pts.forEach(e=>{if(e>0&&e<E)c.lineTo(X(e),Y(Tof(e)));});c.lineTo(X(E),Y(T));c.stroke();c.lineCap='butt';
+      tx(c,'solid',X(1)+8,Y(-28),{s:16,c:K['ink-2']});tx(c,'melting',X(2),Y(0)-12,{s:16,w:700,a:'center'});
+      tx(c,'liquid',X(4.1)-12,Y(52),{s:16,a:'right',c:K['ink-2']});tx(c,'boiling',X(7.25),Y(100)-12,{s:16,w:700,a:'center'});
+      tx(c,'gas',X(9.4)-10,Y(128),{s:16,a:'right',c:K['ink-2']});
+      dot(c,X(E),Y(T),9,K.ink);dot(c,X(E),Y(T),6,K.brass);
+    }});
+  root.append(cv,el('div',{class:'controls'},bs),out);
+}
+
+/* ---------- 6. thermal expansion ---------- */
+function demoExpansion(root,id){
+  const W=640,H=300;
+  const cv=mkCanvas(W,H,'Left: a thermometer whose liquid rises as temperature rises, with a zoomed-in view of its particles spreading apart. Right: a joint between two steel rails whose gap closes as the rails warm up.');
+  let T=15,t=0;const out=el('p',{class:'readout'});const hex=[];
+  for(let q=-2;q<=2;q++)for(let r=-2;r<=2;r++){if(Math.abs(q+r)>2)continue;hex.push({q,r,p:rand(0,TAU),k:rand(0,TAU)});}
+  function show(){const f=(T+10)/50,gapmm=(8-7.1*f).toFixed(1),day=T<0?'freezing winter day':T<14?'cool day':T<27?'warm day':'hot summer day';
+    setText(out,'<b>'+(T<0?'−'+(-T):T)+' °C</b> ('+day+'). Gap between the rails: <b>'+gapmm+' mm</b>.');}
+  addScene(id,{cv,W,H,update(dt){t+=dt;},
+    draw(c){const f=(T+10)/50;
+      /* thermometer */
+      const x=64,yT=36,len=196,yb=yT+len;thermo(c,x,yT,len,f,{w:14});
+      for(let v=-10;v<=40;v+=10){const y=yb-((v+10)/50)*(len-6);c.strokeStyle=K.ink;c.lineWidth=2;c.beginPath();c.moveTo(x-17,y);c.lineTo(x-9,y);c.stroke();tx(c,(v<0?'−'+(-v):String(v)),x-21,y+5,{s:14,a:'right',c:K['ink-2']});}
+      /* magnifier */
+      const mx=206,my=128,mr=66;c.strokeStyle=K['ink-2'];c.lineWidth=2;c.setLineDash([4,4]);c.beginPath();c.moveTo(x+14,yb+10);c.lineTo(mx-mr*.72,my+mr*.7);c.stroke();c.setLineDash([]);
+      dot(c,mx,my,mr,K.panel);c.save();c.beginPath();c.arc(mx,my,mr-2,0,TAU);c.clip();
+      const sp=15+8*f,am=1+3.2*f,spd=6+12*f;for(const h of hex)dot(c,mx+sp*(h.q+h.r/2)+Math.sin(t*spd+h.p)*am,my+sp*h.r*.866+Math.cos(t*spd*.9+h.k)*am,6,tcol(.08+.84*f));
+      c.restore();c.lineWidth=3;c.strokeStyle=K.ink;c.beginPath();c.arc(mx,my,mr,0,TAU);c.stroke();
+      tx(c,'Liquid particles,',mx,my+mr+22,{s:15,a:'center',c:K['ink-2']});tx(c,'zoomed in',mx,my+mr+40,{s:15,a:'center',c:K['ink-2']});
+      /* rail joint */
+      const gcx=474,g=lerp(24,3,f),x0=316,x1=626;
+      c.fillStyle=K['ink-2'];c.globalAlpha=.6;for(let xx=x0+8;xx<x1-20;xx+=44)c.fillRect(xx,194,24,14);c.globalAlpha=1;
+      c.strokeStyle=K['ink-2'];c.lineWidth=2;c.beginPath();c.moveTo(x0,209);c.lineTo(x1,209);c.stroke();
+      [[x0,gcx-g/2],[gcx+g/2,x1]].forEach(s=>{const w=s[1]-s[0];c.fillStyle='#7C8891';c.fillRect(s[0],150,w,14);c.fillStyle='#98A4AC';c.fillRect(s[0],164,w,20);c.fillStyle='#7C8891';c.fillRect(s[0],184,w,10);});
+      c.strokeStyle=K.ink;c.lineWidth=2;c.beginPath();c.moveTo(gcx-g/2,126);c.lineTo(gcx-g/2,146);c.moveTo(gcx+g/2,126);c.lineTo(gcx+g/2,146);c.stroke();
+      tx(c,'gap '+(8-7.1*f).toFixed(1)+' mm',gcx,116,{s:18,w:700,a:'center'});
+      tx(c,'steel rail',x0+62,178,{s:15,a:'center',c:'#1C242B'});tx(c,'steel rail',x1-62,178,{s:15,a:'center',c:'#1C242B'});
+      tx(c,'A rail joint, seen from the side',(x0+x1)/2,238,{s:15,a:'center',c:K['ink-2']});
+      /* sun or snowflake */
+      const sx=596,sy=52;if(T>=3){c.globalAlpha=clamp((T-3)/22,.25,1);dot(c,sx,sy,13,K.brass);c.strokeStyle=K.brass;c.lineWidth=3;for(let i=0;i<8;i++){const a=i*TAU/8;c.beginPath();c.moveTo(sx+Math.cos(a)*18,sy+Math.sin(a)*18);c.lineTo(sx+Math.cos(a)*25,sy+Math.sin(a)*25);c.stroke();}c.globalAlpha=1;}
+      else{c.strokeStyle=K.cold;c.lineWidth=3;for(let i=0;i<3;i++){const a=i*TAU/6;c.beginPath();c.moveTo(sx-Math.cos(a)*20,sy-Math.sin(a)*20);c.lineTo(sx+Math.cos(a)*20,sy+Math.sin(a)*20);c.stroke();}}
+    }});
+  root.append(cv,range('Temperature',-10,40,15,v=>{T=v;show();},v=>(v<0?'−'+(-v):v)+' °C'),out);show();
+}
+
+/* ---------- 7. conduction ---------- */
+function demoConduction(root,id){
+  const W=640,H=340,N=14;
+  const cv=mkCanvas(W,H,'Top: a row of particles in a steel fire iron. When one end is in the fire, the shaking passes from particle to particle while each particle stays in place. Bottom: a line of freight cars. A bump from the locomotive passes down the train from car to car.');
+  let on=false,t=0,tb=99;const u=new Array(N).fill(0),ph=u.map(()=>[rand(0,TAU),rand(0,TAU)]);
+  const out=el('p',{class:'readout'});
+  const bF=btn('Put the end in the fire',()=>{on=!on;bF.textContent=on?'Take it out of the fire':'Put the end in the fire';},'primary');
+  const bB=btn('Bump the train',()=>{tb=0;});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;tb+=dt;if(on)diffuse(u,14,dt,1);else{diffuse(u,14,dt,null);for(let i=0;i<N;i++)u[i]*=(1-dt*.12);}},
+    draw(c){
+      const hT=Math.round(20+u[N-1]*160);
+      setText(out,(on?'The end is in the fire. ':'The end is out of the fire. ')+'Handle end: <b>'+hT+' °C</b>.<br>The particles shake harder, but each one stays at its own mark. Only the energy moves along.');
+      tx(c,'Particles in a steel fire iron',118,30,{s:16,c:K['ink-2']});
+      c.globalAlpha=.35;rr(c,70,74,548,26,8);c.fillStyle='#8E9AA3';c.fill();c.globalAlpha=1;
+      rr(c,14,34,84,108,6);c.fillStyle='#2A1A14';c.fill();if(on)flames(c,20,138,72,70,t,4);else{c.fillStyle='#15100D';c.fillRect(18,130,76,8);}
+      rr(c,14,34,84,108,6);c.lineWidth=3;c.strokeStyle=K['loco-dark'];c.stroke();
+      for(let i=0;i<N;i++){const hx=118+i*36,am=1.2+9*u[i],sp=8+14*u[i];
+        c.strokeStyle=K['ink-2'];c.lineWidth=2;c.beginPath();c.moveTo(hx,106);c.lineTo(hx,114);c.stroke();
+        dot(c,hx+Math.sin(t*sp+ph[i][0])*am,87+Math.cos(t*sp*.9+ph[i][1])*am*.55,8.5,tcol(.06+.92*u[i]));}
+      tx(c,'handle end',586,60,{s:15,a:'center',c:K['ink-2']});tx(c,hT+' °C',586,140,{s:19,w:700,a:'center'});
+      /* freight cars */
+      tx(c,'The same idea with freight cars',118,216,{s:16,c:K['ink-2']});
+      const ry=310;c.fillStyle=K.ink;c.fillRect(0,ry,W,4);
+      const lx=10*pulse(tb/.3);
+      rr(c,26+lx,274,64,28,3);c.fillStyle=K['loco-body'];c.fill();rr(c,26+lx,254,26,22,2);c.fill();c.fillStyle=K['loco-dark'];c.fillRect(72+lx,258,9,16);
+      [38,58,78].forEach(x=>{dot(c,x+lx,ry-7,7,K['loco-dark']);dot(c,x+lx,ry-7,3.5,K['loco-wheel']);});
+      for(let i=0;i<8;i++){const q=(tb-.12-i*.14),d=7*pulse(q/.34),x=112+i*64+d;
+        c.fillStyle=K['loco-dark'];c.fillRect(x-10,292,10,3);
+        rr(c,x,268,54,32,2);c.fillStyle=i%2?'#8A5A3C':'#A8523A';c.fill();c.strokeStyle=K['loco-dark'];c.lineWidth=2;c.strokeRect(x+20,272,14,24);
+        dot(c,x+11,ry-5,5,K['loco-dark']);dot(c,x+43,ry-5,5,K['loco-dark']);
+        if(q>0&&q<.16){c.strokeStyle=K.brass;c.lineWidth=3;for(let k=0;k<5;k++){const a=-Math.PI/2+(k-2)*.5;c.beginPath();c.moveTo(x-5+Math.cos(a)*7,286+Math.sin(a)*7);c.lineTo(x-5+Math.cos(a)*15,286+Math.sin(a)*15);c.stroke();}}}
+    }});
+  root.append(cv,el('div',{class:'controls'},bF,bB),out);
+}
+
+/* ---------- 8. convection ---------- */
+function demoConvection(root,id){
+  const W=640,H=320,bx=30,by=34,bw=580,bh=246;
+  const cv=mkCanvas(W,H,'A room with a heater on the floor at the left. Warm air rises above the heater, moves across the ceiling, cools, sinks on the right and returns along the floor in a loop.');
+  let on=true,lev=1,k=.16;const P=[];for(let i=0;i<80;i++)P.push({u:rand(.05,.95),v:rand(.06,.94)});
+  const out=el('p',{class:'readout'});
+  const b=btn('Switch the heater off',()=>{on=!on;b.textContent=on?'Switch the heater off':'Switch the heater on';});
+  addScene(id,{cv,W,H,
+    update(dt){lev+=((on?1:0)-lev)*Math.min(1,dt*(on?.9:.35));const kk=k*lev;
+      for(const p of P){const du=-Math.PI*Math.sin(Math.PI*p.u)*Math.cos(Math.PI*p.v),dv=Math.PI*Math.cos(Math.PI*p.u)*Math.sin(Math.PI*p.v);
+        p.u=clamp(p.u+(du*kk+rand(-1,1)*.02)*dt,.03,.97);p.v=clamp(p.v+(dv*kk+rand(-1,1)*.02)*dt,.05,.95);}},
+    draw(c){
+      setText(out,on?(lev>.6?'<b>Heater on.</b> Warm air rises, cools, and sinks. The loop is a convection current.':'<b>Heater on.</b> The air above the heater is warming up and starting to rise.'):
+        (lev>.12?'<b>Heater off.</b> The air is no longer being warmed. The current is slowing down.':'<b>Heater off.</b> The air is all about the same temperature, so there is no density difference and no current.'));
+      rr(c,bx,by,bw,bh,8);c.fillStyle=K.panel;c.fill();
+      for(const p of P){const th=Math.atan2(p.v-.5,p.u-.5),tm=.5-.5*Math.cos(th);dot(c,bx+p.u*bw,by+(1-p.v)*bh,5.5,tcol(lerp(.3,.06+tm*.9,lev)));}
+      rr(c,bx,by,bw,bh,8);c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+      rr(c,bx+36,by+bh-18,128,14,4);c.fillStyle=on?K.hot:K['ink-2'];c.fill();
+      tx(c,'ceiling',W/2,24,{s:15,a:'center',c:K['ink-2']});tx(c,'floor',W/2,by+bh+24,{s:15,a:'center',c:K['ink-2']});tx(c,'heater',bx+100,by+bh+24,{s:15,a:'center',c:K['ink-2']});
+      if(lev>.15){c.globalAlpha=clamp(lev,0,1);
+        arrow(c,bx+64,by+bh-60,bx+64,by+62,K.brass,5);arrow(c,bx+bw-64,by+62,bx+bw-64,by+bh-60,K.brass,5);
+        arrow(c,bx+150,by+30,bx+bw-150,by+30,K.brass,5);arrow(c,bx+bw-150,by+bh-36,bx+190,by+bh-36,K.brass,5);
+        tag(c,'warm air rises',bx+82,by+bh/2+6);tag(c,'cool air sinks',bx+bw-82,by+bh/2+6,{a:'right'});c.globalAlpha=1;}
+    }});
+  root.append(cv,el('div',{class:'controls'},b),out);
+}
+
+/* ---------- 9. radiation ---------- */
+function demoRadiation(root,id){
+  const W=640,H=300,DX=158,PX=482;
+  const cv=mkCanvas(W,H,'A firebox door on the left and a steel plate on the right with a gap between them. When the door is open, waves cross the gap and the particles in the plate vibrate faster, with or without air in the gap.');
+  let open=false,air=true,u=0,t=0;const segs=[],A=[],lat=[];
+  for(let i=0;i<14;i++)A.push({x:rand(176,462),y:rand(60,240),a:rand(0,TAU),k:rand(.7,1.3)});
+  for(let r=0;r<6;r++)for(let q=0;q<4;q++)lat.push({x:PX+19+q*24,y:60+18+r*28.8,p:rand(0,TAU),q:rand(0,TAU)});
+  const out=el('p',{class:'readout'});
+  const bD=btn('Open the firebox door',()=>{open=!open;bD.textContent=open?'Close the firebox door':'Open the firebox door';if(open)segs.push({a:DX,b:DX,e:true});else segs.forEach(s=>s.e=false);},'primary');
+  const bA=btn('Take the air out of the gap',()=>{air=!air;bA.textContent=air?'Take the air out of the gap':'Put the air back';});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;let hit=false;
+      for(let i=segs.length-1;i>=0;i--){const s=segs[i];s.b=Math.min(PX,s.b+420*dt);if(!s.e)s.a+=420*dt;if(s.a>=PX)segs.splice(i,1);else if(s.b>=PX)hit=true;}
+      u=clamp(u+(hit?.14:-.05)*dt,0,1);if(air)for(const p of A)moveIn(p,34*p.k,dt,172,54,PX-14,246);},
+    draw(c){
+      setText(out,'Steel plate: <b>'+Math.round(20+u*130)+' °C</b>. Gap: <b>'+(air?'air':'empty space, no particles')+'</b>.<br>'+(open?'Waves are crossing the gap and the plate is absorbing them. Radiation does not need particles to travel.':'The door is closed, so no waves reach the plate.'));
+      /* firebox front */
+      rr(c,16,40,134,222,8);c.fillStyle=K['loco-dark'];c.fill();
+      const cx=96,cy=150;
+      if(open){const g=c.createRadialGradient(cx,cy,4,cx,cy,46);g.addColorStop(0,'#FFE27A');g.addColorStop(1,'#E8601C');dot(c,cx,cy,44,g);
+        c.save();c.beginPath();c.arc(cx,cy,44,0,TAU);c.clip();flames(c,cx-44,cy+46,88,74,t,4);c.restore();
+        c.fillStyle='#39434C';c.beginPath();c.ellipse(cx-50,cy,9,44,0,0,TAU);c.fill();}
+      else{dot(c,cx,cy,44,'#39434C');c.fillStyle='#B9C0C6';c.fillRect(cx-4,cy-22,8,44);}
+      c.lineWidth=4;c.strokeStyle='#0F1418';c.beginPath();c.arc(cx,cy,44,0,TAU);c.stroke();
+      tx(c,'firebox door',83,284,{s:15,a:'center',c:K['ink-2']});
+      /* gap */
+      tag(c,air?'air':'empty space: no particles',(DX+PX)/2,34,{a:'center',s:16});
+      if(air)for(const p of A)dot(c,p.x,p.y,4,K['ink-2']);
+      c.lineWidth=3;c.strokeStyle='#F0812A';
+      for(const s of segs)for(let r=0;r<5;r++){const y0=84+r*33;c.beginPath();let first=true;for(let x=s.a;x<=s.b;x+=3){const y=y0+Math.sin((x-t*150)/30*TAU)*7;if(first){c.moveTo(x,y);first=false;}else c.lineTo(x,y);}c.stroke();}
+      /* plate */
+      rr(c,PX,60,112,180,6);c.fillStyle=K.panel;c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+      const am=1.2+6.5*u,sp=7+14*u;for(const p of lat)dot(c,p.x+Math.sin(t*sp+p.p)*am,p.y+Math.cos(t*sp*.9+p.q)*am,6.5,tcol(.08+.88*u));
+      tx(c,'steel plate',PX+56,262,{s:15,a:'center',c:K['ink-2']});tx(c,Math.round(20+u*130)+' °C',PX+56,284,{s:19,w:700,a:'center'});
+    }});
+  root.append(cv,el('div',{class:'controls'},bD,bA),out);
+}
+
+/* ---------- 11a. conductor and insulator race ---------- */
+function demoRods(root,id){
+  const W=640,H=300,NS=24,X0=98,L=444,sw=L/NS;
+  const cv=mkCanvas(W,H,'Three rods with one end in the same fire: metal, wood and foam. Heat travels along the metal rod quickly, along the wood slowly, and along the foam very slowly.');
+  let lit=false,t=0,time=0;
+  const R=[{n:'Metal: a conductor',D:30,col:'#9AA6AF',y:70,np:16},{n:'Wood: an insulator',D:2.2,col:'#B58A5A',y:154,np:16},{n:'Foam: an insulator with trapped air',D:.5,col:'#E4E0D2',y:238,np:6}];
+  R.forEach(r=>{r.u=new Array(NS).fill(0);r.ph=Array.from({length:r.np},()=>[rand(0,TAU),rand(0,TAU)]);});
+  const out=el('p',{class:'readout'});
+  const bL=btn('Light the fire',()=>{lit=true;},'primary'),bR=btn('Start again',()=>{lit=false;time=0;R.forEach(r=>r.u.fill(0));});
+  addScene(id,{cv,W,H,
+    update(dt){t+=dt;if(lit&&time<40){time+=dt;R.forEach(r=>diffuse(r.u,r.D,dt,1));}},
+    draw(c){
+      const temps=R.map(r=>Math.round(20+r.u[NS-1]*180));
+      setText(out,!lit?'All three rods start at <b>20 °C</b>. The fire is not lit yet.':'Time: <b>'+time.toFixed(0)+' s</b>. Far ends: metal <b>'+temps[0]+' °C</b>, wood <b>'+temps[1]+' °C</b>, foam <b>'+temps[2]+' °C</b>.'+(time>=40?' The metal is the conductor. It moved the thermal energy quickly.':''));
+      rr(c,12,22,86,262,6);c.fillStyle='#2A1A14';c.fill();if(lit)flames(c,18,280,74,150,t,3);rr(c,12,22,86,262,6);c.lineWidth=3;c.strokeStyle=K['loco-dark'];c.stroke();
+      R.forEach((r,j)=>{
+        tx(c,r.n,X0+8,r.y-24,{s:16,w:700});
+        c.fillStyle=r.col;c.fillRect(X0-18,r.y-15,L+18,30);
+        for(let i=0;i<NS;i++){if(r.u[i]>.01){c.fillStyle=tcol(.5+.5*r.u[i],r.u[i]*.8);c.fillRect(X0+i*sw-(i?0:18),r.y-15,sw+(i?.6:18),30);}}
+        c.lineWidth=2.5;c.strokeStyle=K.ink;c.strokeRect(X0-18,r.y-15,L+18,30);
+        if(j===2){c.strokeStyle='#8A8778';c.lineWidth=1.5;for(let i=0;i<11;i++){c.beginPath();c.arc(X0+22+i*40,r.y+(i%2?5:-4),8,0,TAU);c.stroke();}}
+        for(let i=0;i<r.np;i++){const fx=(i+.5)/r.np,x=X0+fx*L,uu=r.u[Math.min(NS-1,Math.floor(fx*NS))],am=.8+5*uu,sp=7+14*uu;
+          dot(c,x+Math.sin(t*sp+r.ph[i][0])*am,r.y+Math.cos(t*sp*.9+r.ph[i][1])*am*.6,4.5,'#1C242B');}
+        tx(c,temps[j]+' °C',X0+L+12,r.y+7,{s:20,w:700});
+      });
+      tx(c,'far end',X0+L+12,32,{s:15,c:K['ink-2']});
+    }});
+  root.append(cv,el('div',{class:'controls'},bL,bR),out);
+}
+
+/* ---------- 11b. touch test ---------- */
+function demoTouch(root,id){
+  const W=640,H=262;
+  const cv=mkCanvas(W,H,'A hand above a metal handrail and a hand above a wooden bench. Both objects are 20 degrees Celsius. When touched, energy leaves the hand quickly into the metal and slowly into the wood.');
+  const S=[{x:168,n:'Metal handrail',col:'#9AA6AF',rate:18,spread:150,to:23,tau:1.1,on:false,hy:0,skin:33,acc:0,d:[]},
+           {x:472,n:'Wooden bench',col:'#B58A5A',rate:2.4,spread:16,to:31,tau:3,on:false,hy:0,skin:33,acc:0,d:[]}];
+  const out=el('p',{class:'readout'});
+  const bs=S.map((o,i)=>{const b=btn(i?'Touch the wood':'Touch the metal',()=>{o.on=!o.on;b.setAttribute('aria-pressed',String(o.on));});b.setAttribute('aria-pressed','false');return b;});
+  addScene(id,{cv,W,H,
+    update(dt){S.forEach(o=>{o.hy+=((o.on?1:0)-o.hy)*Math.min(1,dt*9);const touch=o.on&&o.hy>.9;
+      o.skin+=((touch?o.to:33)-o.skin)*Math.min(1,dt/(touch?o.tau:1.5));
+      if(touch){o.acc+=dt*o.rate;while(o.acc>=1){o.acc-=1;o.d.push({x:o.x+rand(-26,26),y:178,vx:rand(-1,1)*o.spread,vy:rand(14,30),age:0});}}
+      for(let i=o.d.length-1;i>=0;i--){const p=o.d[i];p.age+=dt;p.x+=p.vx*dt;p.y=Math.min(204,p.y+p.vy*dt);if(p.age>1.1||Math.abs(p.x-o.x)>118)o.d.splice(i,1);}});},
+    draw(c){
+      const m=S[0],w=S[1];
+      setText(out,(!m.on&&!w.on)?'Both thermometers read <b>20 °C</b>. Press a button to touch.':
+        'Both are still <b>20 °C</b>.'+(m.on?' Metal: energy leaves your hand fast, so it <b>feels cold</b>.':'')+(w.on?' Wood: energy leaves your hand slowly, so it <b>feels close to normal</b>.':''));
+      S.forEach(o=>{
+        tx(c,o.n,o.x,30,{s:25,w:800,d:1,a:'center'});
+        c.fillStyle=o.col;c.fillRect(o.x-124,176,248,34);c.lineWidth=3;c.strokeStyle=K.ink;c.strokeRect(o.x-124,176,248,34);
+        for(const p of o.d){c.globalAlpha=clamp(1-p.age/1.1,0,1);dot(c,p.x,p.y,4,K.hot);}c.globalAlpha=1;
+        const hy=62+o.hy*56;rr(c,o.x-40,hy,80,58,[14,14,22,22]);c.fillStyle=K.skin;c.fill();c.lineWidth=3;c.strokeStyle=K.ink;c.stroke();
+        c.beginPath();c.ellipse(o.x-48,hy+26,10,19,-.35,0,TAU);c.fillStyle=K.skin;c.fill();c.stroke();
+        c.fillStyle=K.skin;c.fillRect(o.x-37,hy+14,10,26);
+        tx(c,'your skin',o.x,hy+26,{s:14,a:'center',c:'#4A2E1E'});tx(c,Math.round(o.skin)+' °C',o.x,hy+46,{s:18,w:700,a:'center',c:'#4A2E1E'});
+        tx(c,'Thermometer on it: 20 °C',o.x,238,{s:16,a:'center',c:K['ink-2']});
+      });
+    }});
+  root.append(cv,el('div',{class:'controls'},bs),out);
+}
+
+/* ---------- 12. water against air ---------- */
+function demoWaterAir(root,id){
+  const W=640,H=300,y0=58,y1=250;
+  const cv=mkCanvas(W,H,'Two boxes at 16 degrees Celsius above a strip of skin. The air box has a few particles. The water box has many particles moving at the same speed, so many more of them hit the skin.');
+  const B=[{x0:24,x1:304,n:'AIR, 16 °C',N:6,hits:0,P:[],F:[]},{x0:336,x1:616,n:'WATER, 16 °C',N:64,hits:0,P:[],F:[]}];
+  B.forEach(b=>{for(let i=0;i<b.N;i++){let a=rand(0,TAU);if(Math.abs(Math.sin(a))<.3)a+=.6;b.P.push({x:rand(b.x0+8,b.x1-8),y:rand(y0+8,y1-8),a:a});}});
+  const out=el('p',{class:'readout'});
+  addScene(id,{cv,W,H,
+    update(dt){B.forEach(b=>{for(const p of b.P){p.x+=Math.cos(p.a)*95*dt;p.y+=Math.sin(p.a)*95*dt;
+        if(p.x<b.x0+6){p.x=b.x0+6;p.a=Math.PI-p.a;}else if(p.x>b.x1-6){p.x=b.x1-6;p.a=Math.PI-p.a;}
+        if(p.y<y0+6){p.y=y0+6;p.a=-p.a;}else if(p.y>y1-6){p.y=y1-6;p.a=-p.a;b.hits++;b.F.push({x:p.x,age:0});}}
+      for(let i=b.F.length-1;i>=0;i--){b.F[i].age+=dt;if(b.F[i].age>.4)b.F.splice(i,1);}});},
+    draw(c){
+      const a=B[0].hits,w=B[1].hits;
+      setText(out,'Hits on your skin so far: air <b>'+a+'</b>, water <b>'+w+'</b>.<br>'+(a>=3?'The water has hit your skin about <b>'+Math.round(w/a)+' times</b> as often. Each hit carries a little thermal energy away.':'Same temperature means the same average particle speed. Keep watching the counters.'));
+      B.forEach(b=>{
+        tx(c,b.n,b.x0,34,{s:24,w:800,d:1});tx(c,'hits: '+b.hits,b.x1,34,{s:18,w:700,a:'right'});
+        c.fillStyle=K.panel;c.fillRect(b.x0,y0,b.x1-b.x0,y1-y0);
+        c.fillStyle=K.skin;c.fillRect(b.x0,y1,b.x1-b.x0,24);
+        for(const f of b.F){c.globalAlpha=1-f.age/.4;c.strokeStyle=K.hot;c.lineWidth=3;c.beginPath();c.arc(f.x,y1,4+f.age*36,Math.PI,0);c.stroke();}c.globalAlpha=1;
+        for(const p of b.P)dot(c,p.x,p.y,5.5,tcol(.32));
+        c.lineWidth=3;c.strokeStyle=K.ink;c.strokeRect(b.x0,y0,b.x1-b.x0,y1-y0+24);
+        tx(c,'your skin',(b.x0+b.x1)/2,y1+17,{s:15,a:'center',c:'#4A2E1E'});
+      });
+    }});
+  root.append(cv,el('div',{class:'controls'},btn('Reset the counters',()=>{B.forEach(b=>{b.hits=0;});})),out);
+}
+
+/* ================= content ================= */
+const DENSITY_FIG='<svg viewBox="0 0 420 120" role="img" aria-label="Two equal boxes. The cooler box holds 16 particles close together and is more dense. The warmer box holds 9 particles spread apart and is less dense."><g font-family="Atkinson Hyperlegible,Verdana,sans-serif" font-size="15" fill="currentColor"><rect x="10" y="8" width="84" height="84" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/><g fill="rgb(58,124,236)">'+
+  [0,1,2,3].map(r=>[0,1,2,3].map(q=>'<circle cx="'+(22+q*20)+'" cy="'+(20+r*20)+'" r="6"/>').join('')).join('')+'</g><text x="106" y="38" font-weight="700">Cooler air</text><text x="106" y="58">particles closer</text><text x="106" y="78">more dense: sinks</text>'+
+  '<rect x="236" y="8" width="84" height="84" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/><g fill="rgb(240,82,48)">'+
+  [0,1,2].map(r=>[0,1,2].map(q=>'<circle cx="'+(252+q*26)+'" cy="'+(24+r*26)+'" r="6"/>').join('')).join('')+'</g><text x="332" y="38" font-weight="700">Warmer</text><text x="332" y="58">spread out</text><text x="332" y="78">rises</text></g></svg>';
+
+const STOPS=[
+{id:'departure',short:'Depart',name:'Thermal Express',covers:'Thermal Energy & Molecular Motion, taught by a steam locomotive',
+ big:'A steam locomotive is a machine that runs on thermal energy. Every idea in your science notes happens somewhere on this engine.',
+ tryIt:'Drag the fire up and down. Watch the water particles in the boiler, the steam, and the wheels.',demo:demoHero,
+ wordsTitle:'How this trip works',
+ words:['There are <b>12 short stops</b>. Each stop has one idea, one thing to play with, and one or two questions.',
+  'Answer the questions to <b>punch your ticket</b>. A wrong answer costs nothing. You just pick another one.',
+  'The <b>Words for the test</b> box at each stop uses the same words as your notes.',
+  'You can take a break at any stop. Your ticket is saved on this device.']},
+
+{id:'particles',num:1,short:'Particles',name:'Particle Yard',covers:'From your notes: solid, liquid, gas',
+ big:'Everything is made of tiny particles that never stop moving. How they move decides whether something is a solid, a liquid or a gas.',
+ tryIt:'Press <b>Change the tank shape</b>. See which one keeps its shape, which one pools at the bottom, and which one fills the whole tank.',demo:demoStates,
+ words:['<b>Solid:</b> definite shape and definite volume. Particles are packed closely together and vibrate in place.',
+  '<b>Liquid:</b> definite volume, but it takes the shape of its container. Particles are close together but slide past each other.',
+  '<b>Gas:</b> no definite shape or volume. It spreads out to fill its container. Particles are far apart and move freely.'],
+ rail:['A steam locomotive needs all three. <b>Solid:</b> the steel boiler and the coal. <b>Liquid:</b> the water in the tender. <b>Gas:</b> the steam that pushes the pistons.'],
+ checks:[{q:'Particles are close together but slide past each other. Which state of matter is this?',o:[
+  {t:'Solid',why:'In a solid, particles vibrate in place. They do not slide past each other.'},
+  {t:'Liquid',ok:1,why:'Liquid particles stay close together but slide past each other. That is why a liquid can pour.'},
+  {t:'Gas',why:'In a gas, particles are far apart, not close together.'}]}]},
+
+{id:'speed',num:2,short:'Speed',name:'Speed Junction',covers:'From your notes: kinetic energy, temperature, thermal energy',
+ big:'Temperature tells you how fast the particles are moving on average. Thermal energy is the total for all the particles added together.',
+ tryIt:'First move <b>Particle speed</b>. The thermometer changes. Then move <b>Number of particles</b>. The thermometer stays the same, but the thermal energy changes.',demo:demoSpeed,
+ words:['<b>Kinetic energy:</b> the energy an object or particle has because it is moving.',
+  '<b>Temperature:</b> a measure of the <b>average</b> kinetic energy of the particles in a substance.',
+  '<b>Thermal energy:</b> the <b>total</b> kinetic energy of all the particles. It depends on particle speed <b>and</b> the number of particles (mass).'],
+ rail:['Think of each particle as a tiny train. <b>Temperature</b> is like the average speed of the trains. <b>Thermal energy</b> is like the energy of every train added together. One hundred trains at 50 mph have far more energy in total than one train at 50 mph, but the average speed is the same.',
+  'A spark from the smokestack is much hotter than the water in the tender. But the tender holds thousands of gallons, so the water has far more thermal energy than the spark.'],
+ checks:[{q:'Two tanks of water are both at 20 °C. Tank B holds much more water than Tank A. Which is true?',o:[
+  {t:'Tank B has a higher temperature.',why:'Both are 20 °C, so the average kinetic energy is the same.'},
+  {t:'They have the same temperature, so they have the same thermal energy.',why:'Thermal energy is the total. More particles means a bigger total.'},
+  {t:'They have the same temperature, but Tank B has more thermal energy.',ok:1,why:'Same average, but Tank B has more particles, so its total is bigger.'}]}]},
+
+{id:'heat',num:3,short:'Heat',name:'One-Way Line',covers:'From your notes: heat, energy transfer, units of energy, simulation question 1',
+ big:'Heat is thermal energy moving from something warmer to something cooler. It keeps moving until both are the same temperature.',
+ tryIt:'Press <b>Couple the blocks</b>. The fast particles slow down and the slow particles speed up. On the graph, the three lines meet and go flat.',demo:demoBlocks,
+ words:['<b>Heat:</b> the transfer of thermal energy between substances that are at different temperatures. Energy in transit from warm to cool.',
+  '<b>Energy transfer:</b> when particles speed up or slow down, energy was transferred to them or from them. Hot cocoa cools because its particles lose kinetic energy to the cooler air and cup.',
+  '<b>When solids at different temperatures touch:</b> thermal energy flows from the hotter blocks to the cooler blocks through particle collisions. The faster particles slow down and the slower particles speed up until all the blocks reach the same temperature.',
+  '<b>Thermal equilibrium:</b> the temperature is no longer changing because net heat transfer has stopped. On a graph it is a flat line.',
+  '<b>Units of energy:</b> joule (J) or calorie (cal). The Calories on food labels are really kilocalories (kcal). 1 food Calorie = 1,000 calories.'],
+ rail:['Heat is a one-way line. It only runs from warm to cool, like a freight car rolling down a grade.',
+  'A hot locomotive left in a cold yard overnight cools down. Cold does not go into the engine. Thermal energy goes out of the engine into the cold air.'],
+ checks:[{q:'Solid blocks at different temperatures touch. What happens to the particles?',o:[
+  {t:'The hot particles travel into the cold block.',why:'The particles stay in their own block. Only energy is passed along, by collisions.'},
+  {t:'The faster particles slow down and the slower particles speed up, until all the blocks are the same temperature.',ok:1,why:'Thermal energy flows from hotter to cooler through particle collisions.'},
+  {t:'Cold flows out of the cold block into the hot block.',why:'Thermal energy flows from hotter to cooler. Cold is not something that flows.'}]},
+ {q:'A food label says 200 Calories. How many calories (small c) is that?',o:[
+  {t:'200',why:'Food Calories are kilocalories. Kilo means 1,000.'},
+  {t:'2,000',why:'One food Calorie is 1,000 calories, so multiply 200 by 1,000.'},
+  {t:'200,000',ok:1,why:'1 food Calorie = 1 kilocalorie = 1,000 calories. 200 × 1,000 = 200,000.'}]}]},
+
+{id:'specific-heat',num:4,short:'Specific heat',name:'Heavy Freight',covers:'From your notes: specific heat',
+ big:'Some materials need more energy than others to warm up by 1 °C. Water needs a lot. Metal needs only a little.',
+ tryIt:'Press <b>Heat both</b>. The steel and the water have the same mass and get the same energy. See which thermometer climbs faster. Then press <b>Cool both from 80 °C</b>.',demo:demoSpecific,
+ words:['<b>Specific heat:</b> the amount of energy needed to raise the temperature of the same mass by 1 °C. It depends on the type of matter.',
+  '<b>Water has a high specific heat.</b> It takes more energy to warm up water than the same mass of metal.',
+  'Water heats up slowly and cools down slowly. Metal heats up quickly and cools down quickly.'],
+ rail:['Give the same push to a light handcar and to a long freight train. The handcar speeds up quickly. The freight train speeds up slowly, and it is slow to stop too. For temperature, <b>water is the freight train and metal is the handcar</b>.',
+  'A cold steam locomotive needs hours of fire before it is ready to run. One reason is that its boiler holds a huge amount of water, and water has a high specific heat.'],
+ checks:[{q:'The same mass of water and metal are given the same amount of energy. What happens?',o:[
+  {t:'The temperature of the metal rises more.',ok:1,why:'Metal has a lower specific heat, so the same energy raises its temperature more.'},
+  {t:'The temperature of the water rises more.',why:'Water has a high specific heat. It needs more energy for each 1 °C.'},
+  {t:'Both temperatures rise by the same amount.',why:'Different types of matter need different amounts of energy to warm up by 1 °C.'}]}],
+ waterstop:1},
+
+{id:'state',num:5,short:'State',name:'Boiler Station',covers:'From your notes: changing state, simulation question 2',
+ big:'Add enough thermal energy and particles break free of their arrangement. A solid melts into a liquid. A liquid boils into a gas. While that change is happening, the temperature stays the same.',
+ tryIt:'Press <b>Add energy</b>. The graph climbs, then goes flat while the ice melts. It climbs again, then goes flat while the water boils. Press <b>Remove energy</b> to run it backward.',demo:demoState,
+ words:['Adding thermal energy makes particles move faster.',
+  '<b>Melting:</b> solid → liquid. <b>Boiling:</b> liquid → gas.',
+  'Removing thermal energy slows the particles and reverses the changes. <b>Condensing:</b> gas → liquid. <b>Freezing:</b> liquid → solid.',
+  '<b>During a change of state, the energy goes into rearranging the particles, so the temperature stays constant.</b>',
+  '<b>A flat line on a temperature graph can mean two things:</b> thermal equilibrium has been reached, or a substance is melting or boiling.'],
+ rail:['The flat part of the graph is a station stop. Temperature is the train. While the crew rearranges the cars (the particles), the train does not move down the line, even though energy keeps arriving.',
+  'The white cloud above a steam locomotive is <b>condensing</b>. Steam is an invisible gas. When it meets cold air it loses thermal energy and turns into tiny drops of liquid water that you can see.'],
+ checks:[{q:'Ice is melting and you keep adding energy. What does the temperature do?',o:[
+  {t:'It keeps rising.',why:'During a change of state, the energy goes into rearranging the particles, not into raising the temperature.'},
+  {t:'It stays the same until all the ice has melted.',ok:1,why:'The energy is rearranging the particles, so the temperature stays constant.'},
+  {t:'It goes down.',why:'Energy is being added, not removed. The temperature stays constant while the ice melts.'}]},
+ {q:'What can a flat (horizontal) line on a temperature graph mean?',o:[
+  {t:'The temperature is rising at a steady rate.',why:'A steady rise is a sloped line. Flat means the temperature is not changing.'},
+  {t:'No energy is being added.',why:'Energy can still be going in. During melting or boiling it goes into rearranging the particles.'},
+  {t:'Thermal equilibrium has been reached, or the substance is melting or boiling.',ok:1,why:'Both make the temperature stop changing, so the line goes flat.'}]}]},
+
+{id:'expansion',num:6,short:'Expansion',name:'Expansion Gap',covers:'From your notes: thermal expansion and thermometers',
+ big:'Warmer particles move faster and bump each other harder, so they spread slightly further apart. The material gets a little bigger. That is thermal expansion.',
+ tryIt:'Drag the <b>Temperature</b>. Watch the liquid climb the narrow tube. Watch the particles spread apart. Watch the gap between the rails close.',demo:demoExpansion,
+ words:['As a liquid heats up, its particles gain kinetic energy and move faster.',
+  'They bump into each other with more force, so they spread slightly further apart.',
+  'The liquid expands into the narrow tube of the thermometer, so the level rises.',
+  'The particles do not get bigger. The spaces between them get bigger.'],
+ rail:['Steel rails expand too. A 39-foot rail is about 7 mm longer on a hot summer day than on a freezing winter day. Older track leaves a small gap at each joint to make room. Those joints make the clickety-clack sound.',
+  'If rails have no room to expand in extreme heat, the track can bend sideways. Railroaders call that a sun kink.'],
+ checks:[{q:'Why does the liquid in a thermometer rise when it warms up?',o:[
+  {t:'Its particles get bigger.',why:'Particles stay the same size. They spread further apart.'},
+  {t:'Its particles move faster and spread slightly further apart, so the liquid expands.',ok:1,why:'The liquid expands into the narrow tube, so the level rises.'},
+  {t:'More particles are added to the liquid.',why:'The number of particles stays the same. They take up more space.'}]}]},
+
+{id:'conduction',num:7,short:'Conduction',name:'Conduction Line',covers:'From your notes: mechanisms of thermal energy transfer, 1. Conduction',
+ big:'Conduction is thermal energy passed along by direct contact. Each particle bumps its neighbor. The particles stay in place. Only the energy moves along.',
+ tryIt:'Press <b>Put the end in the fire</b> and watch the shaking pass from particle to particle. Then press <b>Bump the train</b> and watch freight cars do the same thing.',demo:demoConduction,
+ words:['<b>Conduction:</b> the transfer of thermal energy through direct contact between particles of matter.',
+  'Faster-moving (warmer) particles collide with slower-moving (cooler) neighbors and transfer kinetic energy until the temperatures equalize.',
+  '<b>The particles stay in place and vibrate. Only the energy moves along.</b>',
+  '<b>Example from your notes:</b> a metal spoon heating up when it is placed in hot soup.'],
+ rail:['When a locomotive bumps a line of standing cars, the bang runs down the train from coupler to coupler. Each car hardly moves, but the bump travels the whole train. Railroaders call it slack action. Conduction passes energy the same way.',
+  'A steel fire iron left in the firebox gets hot all the way up to the handle.'],
+ checks:[{q:'A metal spoon sits in hot soup and its handle gets hot. What moved along the spoon?',o:[
+  {t:'Energy, passed from particle to particle.',ok:1,why:'The particles stay in place and vibrate. Only the energy moves along.'},
+  {t:'Hot soup particles climbing up the spoon.',why:'The soup stays in the bowl. Soup particles bump the spoon particles and pass energy to them.'},
+  {t:'Spoon particles travelling from the hot end to the handle.',why:'The particles of a solid stay in place and vibrate.'}]}]},
+
+{id:'convection',num:8,short:'Convection',name:'Convection Loop',covers:'From your notes: mechanisms of thermal energy transfer, 2. Convection',
+ big:'Convection is thermal energy carried along by a moving fluid. Warm fluid rises. Cool fluid sinks. Together they make a loop called a convection current.',
+ tryIt:'The heater is on. Pick one particle and follow it around the loop. Then press <b>Switch the heater off</b> and watch what happens to the current.',demo:demoConvection,
+ words:['<b>Convection:</b> the transfer of thermal energy through the movement of fluids, caused by density differences.',
+  'A <b>fluid</b> is a liquid or a gas.',
+  'As a fluid warms, its particles move faster and spread apart. The warm fluid is <b>less dense</b>, so it rises.',
+  'As it cools, it becomes <b>denser</b> and sinks.',
+  'This continuous cycle is called a <b>convection current</b>.',
+  '<b>Example from your notes:</b> warm air rising toward the ceiling of a room.'],
+ fig:DENSITY_FIG,
+ rail:['Smoke rises from the smokestack even when a steam locomotive is standing still. The gases from the fire are far hotter than the air around them, so they are less dense and they rise.',
+  'The same thing happens to the water inside the boiler. Water heated next to the firebox rises, and cooler water sinks to take its place.',
+  'In conduction the particles stay where they are. In convection the particles make the trip themselves, like a train running round a loop line with its load.'],
+ checks:[{q:'Why does warm air rise?',o:[
+  {t:'Each warm particle weighs less than a cool particle.',why:'Each particle has the same mass. The warm particles are just further apart, which makes the warm air less dense.'},
+  {t:'Heat always moves upward.',why:'Heat moves from warm to cool, in any direction. Warm fluid rises because it is less dense.'},
+  {t:'Its particles spread apart, so it is less dense than the cooler air around it.',ok:1,why:'Less dense fluid rises and denser fluid sinks. That makes a convection current.'}]}]},
+
+{id:'radiation',num:9,short:'Radiation',name:'No Track Needed',covers:'From your notes: mechanisms of thermal energy transfer, 3. Radiation',
+ big:'Radiation is energy that travels as electromagnetic waves. It does not need particles to travel through. It can cross empty space.',
+ tryIt:'Press <b>Open the firebox door</b>. Waves cross the gap and the particles in the steel plate speed up. Then press <b>Take the air out of the gap</b>. The waves still arrive.',demo:demoRadiation,
+ words:['<b>Radiation:</b> the transfer of energy through electromagnetic waves.',
+  'Unlike conduction and convection, radiation does <b>NOT</b> require matter or particles to travel.',
+  'The waves are absorbed by matter. The receiving particles move faster and the temperature increases.',
+  '<b>Examples from your notes:</b> feeling heat from sunlight, standing near a campfire, the warmth from a heat lamp.'],
+ rail:['When the fireman opens the firebox door, the crew feels heat on their faces at once, without touching anything. That is radiation.',
+  'Radio signals are electromagnetic waves too. A dispatcher’s voice reaches the locomotive with no wire and no track in between. Energy from the Sun reaches the rails the same way, across empty space.'],
+ checks:[{q:'Which kind of energy transfer can cross empty space?',o:[
+  {t:'Conduction',why:'Conduction needs particles that are touching.'},
+  {t:'Convection',why:'Convection needs a liquid or gas that can move.'},
+  {t:'Radiation',ok:1,why:'Electromagnetic waves do not need matter to travel. That is how sunlight reaches Earth.'}]}]},
+
+{id:'sorting',num:10,short:'Sorting',name:'Sorting Yard',covers:'Practice: conduction, convection or radiation?',custom:buildSorting,waterstop:1},
+
+{id:'insulation',num:11,short:'Insulators',name:'Insulation Depot',covers:'From your notes: conductors and insulators',
+ big:'A conductor passes thermal energy along quickly. An insulator passes it along slowly.',
+ tryIt:'Press <b>Light the fire</b>. Three rods have one end in the same fire. See which far end warms up first.',
+ demo:function(root,id){demoRods(root,id);root.append(el('p',{class:'subhead'},'Touch test'),el('p',{class:'try',html:'Press <b>Touch the metal</b>, then <b>Touch the wood</b>. Both are 20 °C. See how fast energy leaves your hand.'}));demoTouch(root,id);},
+ words:['<b>Why don’t all solids transfer heat at the same rate?</b> In some materials the vibrations pass quickly from particle to particle. In others they pass slowly.',
+  '<b>Thermal conductors</b> (for example metals): materials that allow thermal energy to transfer quickly.',
+  '<b>Thermal insulators</b> (for example wood, plastic, foam): materials that slow down the transfer of thermal energy.',
+  'Materials with <b>trapped air</b>, like foam, fleece and fiberglass, are especially good insulators. Air particles are far apart, so collisions that pass energy along are rare.',
+  '<b>Insulators slow transfer in both directions.</b> A foam cup keeps hot drinks hot and cold drinks cold.',
+  '<b>A metal chair is not colder than a wooden desk.</b> Both are at room temperature. Metal feels colder because it conducts thermal energy away from your hand much faster.',
+  'Thermal energy always moves from your warmer hand to the cooler object.'],
+ rail:['The boiler of a steam locomotive is wrapped in insulation under its metal jacket, to keep thermal energy <b>in</b>. A refrigerator car has insulated walls to keep thermal energy <b>out</b>. It is the same job in both directions: slow the transfer down.',
+  'The fireman’s shovel has a wooden handle. Wood is an insulator, so the handle stays comfortable to hold.'],
+ checks:[{q:'A metal chair and a wooden desk have been in the same room all day. Which is true?',o:[
+  {t:'The metal chair is at a lower temperature than the desk.',why:'Both are at room temperature. A thermometer would read the same on each.'},
+  {t:'They are the same temperature. The metal feels colder because it conducts energy away from your hand faster.',ok:1,why:'Metal is a conductor, so thermal energy leaves your hand quickly.'},
+  {t:'The metal sends cold into your hand.',why:'Thermal energy moves from your warmer hand to the cooler object. Cold does not flow.'}]},
+ {q:'Why are foam and fleece such good insulators?',o:[
+  {t:'They trap air. Air particles are far apart, so collisions that pass energy along are rare.',ok:1,why:'Trapped air slows the transfer of thermal energy.'},
+  {t:'They are warm materials that make their own heat.',why:'Insulators do not make heat. They slow down its transfer.'},
+  {t:'Their particles pass vibrations along very quickly.',why:'That describes a conductor. Insulators pass vibrations along slowly.'}]}]},
+
+{id:'water-air',num:12,short:'Water vs air',name:'Cold Water Crossing',covers:'From your notes: simulation question 3',
+ big:'Water at 16 °C feels colder than air at 16 °C. The temperature is the same. The water takes thermal energy away from your skin much faster.',
+ tryIt:'Both boxes are 16 °C, so the particles move at the same speed. Watch how many particles hit your skin in each box.',demo:demoWaterAir,
+ words:['Water is a much <b>denser</b> fluid than air. It has many more particles per unit volume.',
+  'More particles collide with your skin, so thermal energy transfers away from your body much more rapidly.',
+  'Water is a better <b>conductor</b> of thermal energy than air.'],
+ rail:['A nearly empty passenger car and a packed rush-hour car can travel at the same speed. In the packed car, far more people bump into you. Water is the packed car.',
+  'This is why the firebox of a steam locomotive must stay covered with water. Water touching the hot steel carries thermal energy away fast enough to protect the metal. The crew watches the water gauge closely for that reason.'],
+ checks:[{q:'Why does 16 °C water feel colder than 16 °C air?',o:[
+  {t:'The water is at a lower temperature than the air.',why:'Both are 16 °C.'},
+  {t:'Water particles are colder than air particles.',why:'Same temperature means the same average kinetic energy. There are just many more water particles hitting you.'},
+  {t:'Water is denser. Many more particles hit your skin and carry thermal energy away faster.',ok:1,why:'Water is a better conductor of thermal energy than air.'}]}]},
+
+{id:'terminus',short:'Terminus',name:'Terminus',covers:'Summary, vocabulary cards and the final inspection',custom:buildTerminus}
+];
+
+/* ---------- Sorting Yard ---------- */
+function buildSorting(sec,s){
+  const CARS=[
+   {t:'A metal spoon gets hot in a bowl of soup.',s:'Spoon in soup',a:0},
+   {t:'Warm air rises toward the ceiling of a room.',s:'Warm air rising',a:1},
+   {t:'You feel heat from sunlight.',s:'Sunlight',a:2},
+   {t:'Smoke rises from the smokestack of a standing locomotive.',s:'Smokestack smoke',a:1},
+   {t:'The crew feels heat on their faces when the firebox door opens.',s:'Open firebox door',a:2},
+   {t:'A steel fire iron left in the fire gets hot at the handle.',s:'Fire iron',a:0},
+   {t:'Hot water rises and cooler water sinks inside the boiler.',s:'Boiler water',a:1},
+   {t:'Your hand feels cold on a metal handrail.',s:'Metal handrail',a:0},
+   {t:'A heat lamp warms your food from above without touching it.',s:'Heat lamp',a:2}];
+  const NAMES=['Conduction','Convection','Radiation'],
+   TIPS=['direct contact','moving fluid','waves, no matter needed'],
+   WRONG=['Conduction needs things that are touching. Is energy being passed by direct contact here?','Convection needs a liquid or gas that moves. Is a fluid flowing here?','Radiation is waves crossing a gap with nothing touching. Is that what is happening here?'],
+   RIGHT=['Things are touching, and energy passes from particle to particle.','A liquid or gas is moving and carrying the energy with it.','Nothing is touching. The energy arrives as electromagnetic waves.'];
+  let i=0;
+  const big=el('div',{class:'card bigcard'},el('p',{class:'kicker'},'The big idea'),el('p',{class:'big'},'Thermal energy travels in three ways. Sort each freight car onto the right track.'));
+  const three=el('div',{class:'three'},
+    el('div',{class:'card'},el('h3',{},'Conduction'),el('p',{class:'tagline'},'Direct contact'),el('p',{},'Particles bump their neighbors. The particles stay in place. Like a bump running down a line of cars.')),
+    el('div',{class:'card'},el('h3',{},'Convection'),el('p',{class:'tagline'},'Moving fluid'),el('p',{},'A liquid or gas moves and carries the energy with it. Warm rises, cool sinks. Like a train on a loop line.')),
+    el('div',{class:'card'},el('h3',{},'Radiation'),el('p',{class:'tagline'},'Electromagnetic waves'),el('p',{},'Waves cross a gap. No matter is needed. Like a radio signal reaching the locomotive.')));
+  const n=el('p',{class:'n'}),t=el('p',{class:'t'}),fb=el('p',{class:'fb',role:'status'});
+  const tracks=NAMES.map((nm,k)=>el('div',{class:'track'},el('h3',{},nm),el('p',{class:'hintline'},TIPS[k])));
+  const btns=NAMES.map((nm,k)=>el('button',{type:'button',class:'btn',onclick:()=>choose(k)},nm));
+  const again=btn('Sort the cars again',()=>{i=0;tracks.forEach(tr=>$$('.car',tr).forEach(c=>c.remove()));show();});again.hidden=true;
+  const note=el('p',{class:'punchnote',hidden:true},'All 9 cars sorted. Ticket punched for this stop.');
+  function show(){again.hidden=i<CARS.length;btns.forEach(b=>{b.disabled=i>=CARS.length;});
+    if(i<CARS.length){n.textContent='Car '+(i+1)+' of '+CARS.length;t.textContent=CARS[i].t;fb.className='fb';fb.textContent='';}
+    else{n.textContent='Yard clear';t.textContent='Every car is on the right track.';}}
+  function choose(k){const car=CARS[i];if(!car)return;
+    if(k===car.a){tracks[k].append(el('span',{class:'car'},car.s));const msg='Correct: '+NAMES[k].toLowerCase()+'. '+RIGHT[k];i++;show();fb.className='fb good';fb.textContent=msg;if(i>=CARS.length){note.hidden=false;punch(s.id);}}
+    else{fb.className='fb hint';fb.textContent='Not that track. '+WRONG[k];}}
+  const game=el('div',{class:'card democard'},el('p',{class:'kicker'},'Try it'),el('div',{class:'carcard'},n,t),el('div',{class:'sortbtns'},btns),fb,el('div',{class:'tracks'},tracks),el('div',{class:'controls'},again),note);
+  sec.append(el('div',{style:'display:flex;flex-direction:column;gap:20px'},big,three,game));show();
+}
+
+/* ---------- Terminus ---------- */
+const VOCAB=[
+ ['Solid','Definite shape and volume. Particles are packed closely together and vibrate in place.','A steel rail'],
+ ['Liquid','Definite volume, but takes the shape of its container. Particles are close together but slide past each other.','Water in the tender'],
+ ['Gas','No definite shape or volume. Spreads out to fill its container. Particles are far apart and move freely.','Steam'],
+ ['Kinetic energy','The energy an object or particle has due to its motion.','A moving train'],
+ ['Temperature','A measure of the average kinetic energy of the particles in a substance.','The average speed of all the trains'],
+ ['Thermal energy','The total kinetic energy of all the particles. Depends on particle speed and the number of particles (mass).','The energy of every train added together'],
+ ['Heat','The transfer of thermal energy between substances at different temperatures. Energy in transit from warm to cool.','A one-way line from warm to cool'],
+ ['Specific heat','The energy needed to raise the temperature of the same mass by 1 °C. It depends on the type of matter. Water’s is high.','Water is the freight train, metal is the handcar'],
+ ['Melting and freezing','Melting: solid → liquid. Freezing: liquid → solid. The temperature stays constant during the change.','A station stop on the graph'],
+ ['Boiling and condensing','Boiling: liquid → gas. Condensing: gas → liquid. The temperature stays constant during the change.','The boiler, and the white cloud above the stack'],
+ ['Conduction','Transfer of thermal energy through direct contact between particles. The particles stay in place.','A bump running down a line of cars'],
+ ['Convection','Transfer of thermal energy through the movement of fluids, caused by density differences.','Smoke rising from the smokestack'],
+ ['Radiation','Transfer of energy through electromagnetic waves. It does not need matter to travel.','Heat on your face from the open firebox door'],
+ ['Conductor','A material that lets thermal energy transfer quickly. Metals are conductors.','A steel fire iron'],
+ ['Insulator','A material that slows the transfer of thermal energy, in both directions. Wood, plastic and foam are insulators.','The wooden handle of the shovel'],
+ ['Thermal equilibrium','Everything has reached the same temperature. Net heat transfer has stopped. A flat line on the graph.','Three coupled blocks, three flat lines'],
+ ['Units of energy','Joule (J) or calorie (cal). 1 food Calorie = 1 kilocalorie = 1,000 calories.','Energy stored in the coal']
+];
+const FINAL=[
+ {q:'Temperature is a measure of…',o:['the total kinetic energy of all the particles','the average kinetic energy of the particles','the number of particles'],a:1,why:'Temperature is the average. Thermal energy is the total.',stop:'speed'},
+ {q:'Thermal energy depends on…',o:['particle speed only','the number of particles only','both particle speed and the number of particles (mass)'],a:2,why:'It is the total kinetic energy of all the particles, so speed and number both matter.',stop:'speed'},
+ {q:'In science, heat means…',o:['the transfer of thermal energy from a warmer substance to a cooler one','how hot something is','cold leaving an object'],a:0,why:'Heat is energy in transit from warm to cool. How hot something is, is its temperature.',stop:'heat'},
+ {q:'A mug of hot cocoa cools down because…',o:['cold from the air moves into the cocoa','its particles lose kinetic energy to the cooler air and cup','its particles get smaller'],a:1,why:'Energy transfers from the warm cocoa to the cooler air and cup.',stop:'heat'},
+ {q:'A liquid turning into a gas is called…',o:['melting','boiling','condensing'],a:1,why:'Solid to liquid is melting. Liquid to gas is boiling. Gas to liquid is condensing. Liquid to solid is freezing.',stop:'state'},
+ {q:'Steam hits a cold window and turns into drops of water. This is…',o:['freezing','melting','condensing'],a:2,why:'Gas to liquid is condensing. The steam lost thermal energy to the cold glass.',stop:'state'},
+ {q:'Which has the higher specific heat?',o:['Water','Metal','They are the same'],a:0,why:'Water needs more energy than the same mass of metal to warm up by 1 °C.',stop:'specific-heat'},
+ {q:'Particles in a solid…',o:['are far apart and move freely','are close together and slide past each other','are packed closely together and vibrate in place'],a:2,why:'That is why a solid has a definite shape and a definite volume.',stop:'particles'},
+ {q:'A metal spoon gets hot in a bowl of soup. Which kind of transfer is this?',o:['Conduction','Convection','Radiation'],a:0,why:'Direct contact. Energy passes from particle to particle.',stop:'conduction'},
+ {q:'Warm air rises toward the ceiling and cool air sinks. Which kind of transfer is this?',o:['Conduction','Convection','Radiation'],a:1,why:'A fluid is moving because of density differences.',stop:'convection'},
+ {q:'You feel warmth from a heat lamp without touching it. Which kind of transfer is this?',o:['Conduction','Convection','Radiation'],a:2,why:'Electromagnetic waves cross the gap. No matter is needed.',stop:'radiation'},
+ {q:'A foam cup keeps a cold drink cold because…',o:['foam is a cold material','foam is an insulator, and insulators slow energy transfer in both directions','foam conducts thermal energy quickly'],a:1,why:'The foam slows thermal energy from the warm air getting into the drink.',stop:'insulation'}
+];
+let updateTicket=function(){};
+function buildTerminus(sec,s){
+  const sum=el('div',{class:'card bigcard'},el('p',{class:'kicker'},'The summary from your notes'),
+    el('p',{class:'big',html:'Thermal energy depends on both <b>temperature</b> (average kinetic energy) AND <b>mass</b> (total number of particles).'}),
+    el('p',{style:'margin-top:12px;max-width:38em'},'Different materials also need different amounts of energy to change temperature. For example, water heats up and cools down more slowly than metal.'));
+  const tk=el('div',{class:'ticket'}),tmsg=el('p',{style:'margin-bottom:12px'});
+  const slots=STOPS.filter(x=>x.num).map(x=>{const b=el('button',{type:'button',class:'slot',onclick:()=>go(x.id)},el('span',{class:'hole'},String(x.num)),el('span',{},x.name));b.dataset.id=x.id;tk.append(b);return b;});
+  updateTicket=function(){slots.forEach(b=>{const p=state.punched.includes(b.dataset.id);b.classList.toggle('punched',p);b.setAttribute('aria-label','Stop '+b.querySelector('.hole').textContent+', '+b.lastChild.textContent+(p?', punched':', not punched yet'));});
+    const n=state.punched.length;tmsg.textContent=n>=12?'Your ticket is complete. You have covered every section of your notes.':n+' of 12 stops punched. Tap a stop to ride it again.';};
+  const ticket=el('div',{class:'card'},el('p',{class:'kicker'},'Your ticket'),tmsg,tk);
+  const vg=el('div',{class:'vocab'},VOCAB.map(v=>{const b=el('button',{type:'button',class:'vcard','aria-expanded':'false'},el('span',{class:'term'},v[0]),el('span',{class:'tap'},'Tap to see the meaning'));
+    b.addEventListener('click',()=>{const o=!b.classList.contains('open');b.classList.toggle('open',o);b.setAttribute('aria-expanded',String(o));b.innerHTML='';
+      b.append(el('span',{class:'term'},v[0]));if(o)b.append(el('span',{},v[1]),el('span',{class:'pic'},'On the railroad: '+v[2]));else b.append(el('span',{class:'tap'},'Tap to see the meaning'));});return b;}));
+  const fin=el('div',{class:'card final'});
+  let qi=0,first=[];
+  function render(){fin.innerHTML='';if(qi>=FINAL.length)return result();
+    const q=FINAL[qi];let tried=false;const fb=el('p',{class:'fb',role:'status'});
+    const next=btn(qi===FINAL.length-1?'See my result':'Next question',()=>{qi++;render();},'primary');next.hidden=true;
+    const opts=q.o.map((txt,oi)=>{const b=el('button',{type:'button',class:'opt'},txt);b.addEventListener('click',()=>{
+      if(oi===q.a){b.classList.add('right');opts.forEach(x=>{x.disabled=true;});fb.className='fb good';fb.textContent='Correct. '+q.why;if(first[qi]===undefined)first[qi]=!tried;next.hidden=false;next.focus();}
+      else{tried=true;first[qi]=false;b.classList.add('wrong');b.disabled=true;fb.className='fb hint';fb.textContent='Not that one. Try another answer.';}});return b;});
+    fin.append(el('p',{class:'kicker'},'Question '+(qi+1)+' of '+FINAL.length),el('p',{class:'qt'},q.q),el('div',{class:'opts'},opts),fb,next);}
+  function result(){const score=first.filter(Boolean).length,miss=FINAL.filter((q,i)=>!first[i]);
+    fin.append(el('p',{class:'kicker'},'Inspection result'),el('p',{class:'big'},score+' of '+FINAL.length+' right on the first try.'),
+      el('p',{style:'margin-top:8px'},score>=10?'You know this material. A quick look at the vocabulary cards and you are ready for the test.':score>=7?'Good progress. Ride the stops below one more time, then run the inspection again.':'Now you know exactly which stops to ride again. That is what a practice run is for.'));
+    if(miss.length){const seen={};const ul=el('ul',{class:'missed'});miss.forEach(q=>{if(seen[q.stop])return;seen[q.stop]=1;const st=STOPS.find(x=>x.id===q.stop);ul.append(el('li',{},btn('Ride stop '+st.num+' again: '+st.name,()=>go(st.id),'small')));});fin.append(el('p',{style:'margin-top:14px;font-weight:700'},'Stops to ride again:'),ul);}
+    fin.append(btn('Run the inspection again',()=>{qi=0;first=[];render();}));}
+  render();
+  sec.append(el('div',{style:'display:flex;flex-direction:column;gap:20px'},sum,ticket),
+    el('h2',{class:'sectionhead'},'Vocabulary cards'),vg,
+    el('h2',{class:'sectionhead'},'Final inspection'),el('p',{style:'margin:-4px 0 12px;max-width:38em'},'Twelve questions, one at a time. There is no timer. A wrong answer just means you pick again.'),fin);
+}
+
+/* ================= page assembly ================= */
+const KEY='thermal-express-v1';
+let state={cur:'departure',punched:[]};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function punch(id){if(!state.punched.includes(id)){state.punched.push(id);save();}updateRoute();const n=$('.stop[data-id="'+id+'"] .punchnote');if(n)n.hidden=false;}
+function buildCheck(s){
+  const box=el('div',{class:'card check'},el('p',{class:'kicker'},'Ticket check'));let done=0;
+  const note=el('p',{class:'punchnote',hidden:true},'Ticket punched for this stop.');
+  s.checks.forEach(ck=>{const fb=el('p',{class:'fb',role:'status'});
+    const opts=ck.o.map(o=>{const b=el('button',{type:'button',class:'opt'},o.t);b.addEventListener('click',()=>{
+      if(o.ok){b.classList.add('right');opts.forEach(x=>{x.disabled=true;});fb.className='fb good';fb.textContent='Correct. '+o.why;done++;if(done===s.checks.length)punch(s.id);}
+      else{b.classList.add('wrong');b.disabled=true;fb.className='fb hint';fb.textContent='Not that one. '+o.why+' Try another answer.';}});return b;});
+    box.append(el('div',{class:'q'},el('p',{class:'qt'},ck.q),el('div',{class:'opts'},opts),fb));});
+  box.append(note);return box;
+}
+function buildStop(s,i){
+  const sec=el('section',{class:'stop','data-id':s.id,'aria-labelledby':'h-'+s.id});
+  sec.append(el('div',{class:'board'},el('p',{class:'num'},s.num?'Stop '+s.num+' of 12':(i===0?'Departure':'End of the line')),el('h1',{id:'h-'+s.id,tabindex:'-1'},s.name),el('p',{class:'covers'},s.covers)));
+  if(s.custom)s.custom(sec,s);
+  else{const L=el('div',{class:'colL'}),R=el('div',{class:'colR'});
+    L.append(el('div',{class:'card bigcard'},el('p',{class:'kicker'},'The big idea'),el('p',{class:'big'},s.big)));
+    const d=el('div',{class:'card democard'},el('p',{class:'kicker'},'Try it'),el('p',{class:'try',html:s.tryIt}));s.demo(d,s.id);R.append(d);
+    L.append(el('div',{class:'card wordscard'},el('p',{class:'kicker'},s.wordsTitle||'Words for the test'),el('ul',{class:'words'},s.words.map(w=>el('li',{html:w}))),s.fig?el('div',{class:'fig',html:s.fig}):null));
+    if(s.rail)L.append(el('div',{class:'card railcard'},el('p',{class:'kicker'},'On the railroad'),s.rail.map(w=>el('p',{html:w}))));
+    if(s.checks)R.append(buildCheck(s));
+    sec.append(el('div',{class:'grid'},L,R));}
+  if(s.waterstop)sec.append(el('div',{class:'card waterstop extra',style:'margin-top:20px'},el('p',{class:'kicker'},'Water stop'),el('p',{style:'max-width:38em'},'Steam locomotives stop along the line to take on water. This is a good place for a five-minute break. Your ticket is saved.')));
+  const prev=STOPS[i-1],next=STOPS[i+1];
+  sec.append(el('div',{class:'navrow'},prev?btn('← Back: '+prev.name,()=>go(prev.id)):el('span'),next?btn((i===0?'Start. First stop: ':'Next stop: ')+next.name+' →',()=>go(next.id),'primary'):el('span')));
+  return sec;
+}
+function updateRoute(){
+  const ci=STOPS.findIndex(s=>s.id===curId),route=$('#route');
+  $$('#route-list li').forEach((li,i)=>{const id=li.dataset.id,b=li.firstChild;
+    li.classList.toggle('cur',id===curId);li.classList.toggle('punched',state.punched.includes(id));li.classList.toggle('passed',i<=ci);
+    if(id===curId){b.setAttribute('aria-current','step');route.scrollLeft=li.offsetLeft-route.clientWidth/2+li.offsetWidth/2;}else b.removeAttribute('aria-current');});
+  $('#count').textContent=state.punched.length+' of 12';updateTicket();
+}
+function go(id,quiet){
+  if(!STOPS.some(s=>s.id===id))id='departure';
+  curId=id;state.cur=id;save();
+  $$('.stop').forEach(s=>s.classList.toggle('on',s.dataset.id===id));updateRoute();
+  try{if(location.hash.slice(1)!==id)location.hash=id;}catch(e){}
+  if(!quiet){window.scrollTo(0,0);const hd=$('.stop.on h1');if(hd)hd.focus({preventScroll:true});}
+}
+function start(data){
+  try{const sv=JSON.parse(localStorage.getItem(KEY)||'null');if(sv&&Array.isArray(sv.punched))state={cur:sv.cur||'departure',punched:sv.punched};}catch(e){}
+  if(data&&Array.isArray(data.punched))state={cur:data.cur||'departure',punched:data.punched};
+  state.punched=state.punched.filter(id=>STOPS.some(s=>s.id===id&&s.num));
+  readColors();
+  const ol=$('#route-list'),main=$('#main');
+  STOPS.forEach((s,i)=>{
+    ol.append(el('li',{'data-id':s.id,class:s.num?null:'end'},el('button',{type:'button','aria-label':(s.num?'Stop '+s.num+': ':'')+s.name,onclick:()=>go(s.id)},s.num?String(s.num):''),el('span',{class:'lbl'},s.short)));
+    main.append(buildStop(s,i));});
+  $('#pauseBtn').addEventListener('click',()=>{paused=!paused;syncPause();});syncPause();
+  new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class','style']});
+  if(window.matchMedia){const mq=matchMedia('(prefers-color-scheme: dark)');if(mq.addEventListener)mq.addEventListener('change',readColors);}
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(readColors);
+  window.addEventListener('hashchange',()=>{const hsh=location.hash.slice(1);if(hsh&&hsh!==curId)go(hsh);});
+  const hsh=location.hash.slice(1);
+  go(STOPS.some(s=>s.id===hsh)?hsh:state.cur,true);
+  requestAnimationFrame(loop);
+}
+start({});
+})();
+</script>
+</body>
+</html>
